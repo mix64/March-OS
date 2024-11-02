@@ -1,0 +1,181 @@
+#pragma once
+#include "types.h"
+
+struct EFI_GUID {
+    uint32 Data1;
+    uint16 Data2;
+    uint16 Data3;
+    uint8 Data4[8];
+};
+
+// 7.3.6 EFI_BOOT_SERVICES.LocateHandle()
+enum EFI_LOCATE_SEARCH_TYPE {
+    AllHandles,
+    ByRegisterNotify,
+    ByProtocol
+};
+
+// 4.2.1 EFI_TABLE_HEADER
+struct EFI_TABLE_HEADER {
+    uint64 Signature;
+    uint32 Revision;
+    uint32 HeaderSize;
+    uint32 CRC32;
+    uint32 Reserved;
+};
+
+// 4.4.1 EFI_BOOT_SERVICES
+struct EFI_BOOT_SERVICES {
+    struct EFI_TABLE_HEADER Hdr;
+    // Task Priority Services
+    void *RaiseTPL;
+    void *RestoreTPL;
+    // Memory Services
+    void *AllocatePages;
+    void *FreePages;
+    void *GetMemoryMap;
+    void *AllocatePool;
+    void *FreePool;
+    // Event & Timer Services
+    void *CreateEvent;
+    void *SetTimer;
+    void *WaitForEvent;
+    void *SignalEvent;
+    void *CloseEvent;
+    void *CheckEvent;
+    // Protocol Handler Services
+    void *InstallProtocolInterface;
+    void *ReinstallProtocolInterface;
+    void *UninstallProtocolInterface;
+    uint64 (*HandleProtocol)( // 7.3.7 EFI_BOOT_SERVICES.HandleProtocol()
+            void *Handle,
+            struct EFI_GUID *Protocol,
+            void **Interface);
+    void *Reserved;
+    void *RegisterProtocolNotify;
+    void *LocateHandle;
+    void *LocateDevicePath;
+    void *InstallConfigurationTable;
+    // Image Services
+    void *LoadImage;
+    void *StartImage;
+    void *Exit;
+    void *UnloadImage;
+    void *ExitBootServices;
+    // Miscellaneous Services
+    void *GetNextMonotonicCount;
+    void *Stall;
+    void *SetWatchdogTimer;
+    // DriverSupport Services
+    void *ConnectController;
+    void *DisconnectController;
+    // Open and Close Protocol Services
+    void *OpenProtocol;
+    void *CloseProtocol;
+    void *OpenProtocolInformation;
+    // Library Services
+    void *ProtocolsPerHandle;
+    uint64 (*LocateHandleBuffer)( // 7.3.15 EFI_BOOT_SERVICES.LocateHandleBuffer()
+            enum EFI_LOCATE_SEARCH_TYPE SearchType,
+            struct EFI_GUID *Protocol,
+            void *SearchKey,
+            uint64 *NoHandles,
+            void ***Buffer);
+    void *LocateProtocol;
+    void *InstallMultipleProtocolInterfaces;
+    void *UninstallMultipleProtocolInterfaces;
+    // 32-bit CRC Services
+    void *CalculateCrc32;
+    // Miscellaneous Services
+    void *CopyMem;
+    void *SetMem;
+    void *CreateEventEx;
+};
+
+// 13.5.1 EFI_FILE_PROTOCOL
+struct EFI_FILE_PROTOCOL {
+    uint64 Revision;
+    uint64 (*Open)(
+            struct EFI_FILE_PROTOCOL *This,
+            struct EFI_FILE_PROTOCOL **NewHandle,
+            uint16 *FileName,
+            uint64 OpenMode,
+            uint64 Attributes);
+    uint64 (*Close)(struct EFI_FILE_PROTOCOL *This);
+    void *Delete;
+    uint64 (*Read)(
+            struct EFI_FILE_PROTOCOL *This,
+            uint64 *BufferSize,
+            void *Buffer);
+    uint64 (*Write)(
+            struct EFI_FILE_PROTOCOL *This,
+            uint64 *BufferSize,
+            void *Buffer);
+    void *GetPosition;
+    void *SetPosition;
+    void *GetInfo;
+    void *SetInfo;
+    uint64 (*Flush)(struct EFI_FILE_PROTOCOL *This);
+    void *OpenEx;
+};
+
+// 13.5.2 EFI_FILE_PROTOCOL.Open()
+#define EFI_FILE_MODE_READ 0x0000000000000001
+#define EFI_FILE_MODE_WRITE 0x0000000000000002
+#define EFI_FILE_MODE_CREATE 0x8000000000000000
+#define EFI_FILE_READ_ONLY 0x0000000000000001
+#define EFI_FILE_HIDDEN 0x0000000000000002
+#define EFI_FILE_SYSTEM 0x0000000000000004
+#define EFI_FILE_RESERVED 0x0000000000000008
+#define EFI_FILE_DIRECTORY 0x0000000000000010
+#define EFI_FILE_ARCHIVE 0x0000000000000020
+#define EFI_FILE_VALID_ATTR 0x0000000000000037
+
+// 13.4.1 EFI_SIMPLE_FILE_SYSTEM_PROTOCOL
+struct EFI_SIMPLE_FILE_SYSTEM_PROTOCOL {
+    uint64 Revision;
+    uint64 (*OpenVolume)(
+            struct EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *This,
+            struct EFI_FILE_PROTOCOL **Root);
+};
+
+// 4.3.1 EFI_SYSTEM_TABLE
+struct EFI_SYSTEM_TABLE {
+    struct EFI_TABLE_HEADER Hdr;
+    uint16 *FirmwareVendor;
+    uint32 FirmwareRevision;
+    uint64 ConsoleInHandle;
+    void *ConIn;
+    uint64 ConsoleOutHandle;
+    struct EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL {
+            void *reset;
+            uint64 (*OutputString)(
+                    struct EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *This,
+                    unsigned short *String);
+            void *TestString;
+            void *QueryMode;
+            void *SetMode;
+            void *SetAttribute;
+            uint64 (*ClearScreen)(
+                    struct EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *This);
+    } *ConOut;
+    uint64 StandardErrorHandle;
+    void *StdErr;
+    void *RuntimeServices;
+    struct EFI_BOOT_SERVICES *BootServices;
+    uint64 NumberOfTableEntries;
+    void *ConfigurationTable;
+};
+
+// common.c
+void puts(uint16 *s);
+void put_hex(uint64 n);
+void put_param(uint16 *s, uint64 n);
+void put_warn(uint64 status, uint16 *message);
+void assert(uint64 status, uint16 *message);
+
+// efi.c
+void efi_init(struct EFI_SYSTEM_TABLE *SystemTable);
+struct EFI_FILE_PROTOCOL *search_volume_contains_file(uint16 *filename);
+extern struct EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *SFSP;
+extern struct EFI_SYSTEM_TABLE *ST;

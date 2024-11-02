@@ -1,47 +1,13 @@
-#define uint64 unsigned long long
-#define uint32 unsigned long
-#define uint16 unsigned short
-#define uint8 unsigned char
-
-// 4.3.1 EFI_SYSTEM_TABLE
-struct EFI_SYSTEM_TABLE {
-    struct EFI_TABLE_HEADER {
-        uint64 Signature;
-        uint32 Revision;
-        uint32 HeaderSize;
-        uint32 CRC32;
-        uint32 Reserved;
-    } Hdr;
-    uint16 *FirmwareVendor;
-    uint32 FirmwareRevision;
-    uint64 ConsoleInHandle;
-    void *ConIn;
-    uint64 ConsoleOutHandle;
-    struct EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL {
-            void *reset;
-            uint64 (*OutputString)(
-                    struct EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *This,
-                    unsigned short *String);
-            void *TestString;
-            void *QueryMode;
-            void *SetMode;
-            void *SetAttribute;
-            uint64 (*ClearScreen)(
-                    struct EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *This);
-    } *ConOut;
-    uint64 StandardErrorHandle;
-    void *StdErr;
-    void *RuntimeServices;
-    void *BootServices;
-    uint64 NumberOfTableEntries;
-    void *ConfigurationTable;
-};
+#include "efi.h"
 
 void efi_main(void *ImageHandle __attribute__ ((unused)),
         struct EFI_SYSTEM_TABLE *SystemTable)
 {
-    SystemTable->ConOut->ClearScreen(SystemTable->ConOut);
-    SystemTable->ConOut->OutputString(SystemTable->ConOut,
-                                    L"Hello UEFI!\n");
+    efi_init(SystemTable);
+    struct EFI_FILE_PROTOCOL *root = search_volume_contains_file(L"kernel.bin");
+    if (root == NULL) {
+		assert(1, L"No volume contains kernel.bin.");
+	}
+
     while (1);
 }
