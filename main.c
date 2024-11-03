@@ -1,7 +1,7 @@
 #include "efi.h"
 #include "elf.h"
 
-void load_kernel(EFI_FILE_PROTOCOL *root, uint16 *filename) {
+uint64 load_kernel(EFI_FILE_PROTOCOL *root, uint16 *filename) {
     EFI_FILE_PROTOCOL *file;
     uint64 status = root->Open(root, &file, filename, EFI_FILE_MODE_READ, 0);
     assert(status, L"root->Open(kernel)");
@@ -13,15 +13,16 @@ void load_kernel(EFI_FILE_PROTOCOL *root, uint16 *filename) {
 
     Elf64_Phdr phdr;
     uint64 phdr_size = sizeof(Elf64_Phdr);
-    status = file->SetPosition(file, ehdr.e_phoff);
-    assert(status, L"kernel->SetPosition(phoff)");
-
     for (uint8 i = 0; i < ehdr.e_phnum; i++) {
+        status = file->SetPosition(file, ehdr.e_phoff + phdr_size * i);
+        assert(status, L"kernel->SetPosition(e_phoff)");
         status = file->Read(file, &phdr_size, (void *)&phdr);
         assert(status, L"kernel->Read(Phdr)");
         if (phdr.p_type != ELF_PROG_LOAD) {
             continue;
         }
+        status = file->SetPosition(file, phdr.p_offset);
+        assert(status, L"kernel->SetPosition(p_offset)");
         put_param(L"Load Segment", i);
         put_param(L"p_paddr", phdr.p_paddr);
         put_param(L"p_filesz", phdr.p_filesz);
@@ -35,6 +36,8 @@ void load_kernel(EFI_FILE_PROTOCOL *root, uint16 *filename) {
         }
     }
     file->Close(file);
+
+    return ehdr.e_entry;
 }
 
 void efi_main(void *ImageHandle __attribute__((unused)),
@@ -44,7 +47,9 @@ void efi_main(void *ImageHandle __attribute__((unused)),
     if (root == NULL) {
         panic(L"No volume contains kernel.bin.");
     }
-    load_kernel(root, L"kernel.bin");
-
-    while (1);
+    uint64 kernel_entry_addr = load_kernel(root, L"kernel.bin");
+    put_param(L"Kernel Entry", kernel_entry_addr);
+    void (*entry)(void) = (void (*)(void))(kernel_entry_addr);
+    entry();
+    panic(L"Failed to Start kernel.");
 }
