@@ -1,7 +1,13 @@
 #pragma once
 
 #define NULL (void *)0
-#define uint64 unsigned long long
-#define uint32 unsigned long
-#define uint16 unsigned short
-#define uint8 unsigned char
+
+typedef unsigned long long uint64;
+typedef unsigned long uint32;
+typedef unsigned short uint16;
+typedef unsigned char uint8;
+
+typedef long long int64;
+typedef long int32;
+typedef short int16;
+typedef char int8;

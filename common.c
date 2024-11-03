@@ -1,8 +1,6 @@
 #include "efi.h"
 
-void puts(uint16 *s) {
-    ST->ConOut->OutputString(ST->ConOut, s);
-}
+void puts(uint16 *s) { ST->ConOut->OutputString(ST->ConOut, s); }
 
 void put_hex(uint64 n) {
     uint16 hex[] = L"0123456789ABCDEF";
@@ -23,8 +21,7 @@ void put_param(uint16 *s, uint64 n) {
     puts(L"\r\n");
 }
 
-void put_warn(uint64 status, uint16 *message)
-{
+void warn(uint64 status, uint16 *message) {
     if (status) {
         puts(message);
         puts(L":");
@@ -33,10 +30,14 @@ void put_warn(uint64 status, uint16 *message)
     }
 }
 
-void assert(uint64 status, uint16 *message)
-{
-    put_warn(status, message);
+void assert(uint64 status, uint16 *message) {
+    warn(status, message);
     if (status) {
         while (1);
-	}
+    }
+}
+
+void panic(uint16 *message) {
+    puts(message);
+    while (1);
 }
