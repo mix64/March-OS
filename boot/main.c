@@ -30,7 +30,8 @@ uint64 load_kernel(EFI_FILE_PROTOCOL *root, uint16 *filename) {
         put_param(L"p_paddr", phdr.p_paddr);
         put_param(L"p_filesz", phdr.p_filesz);
         put_param(L"p_memsz", phdr.p_memsz);
-        file->Read(file, &phdr.p_filesz, (void *)phdr.p_paddr);
+        status = file->Read(file, &phdr.p_filesz, (void *)phdr.p_paddr);
+        assert(status, L"kernel->Read(Segment)");
         if (phdr.p_filesz < phdr.p_memsz) {
             uint64 diff = phdr.p_memsz - phdr.p_filesz;
             for (uint64 i = 0; i < diff; i++) {
