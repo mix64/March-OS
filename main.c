@@ -10,6 +10,9 @@ uint64 load_kernel(EFI_FILE_PROTOCOL *root, uint16 *filename) {
     uint64 ehdr_size = sizeof(Elf64_Ehdr);
     status = file->Read(file, &ehdr_size, (void *)&ehdr);
     assert(status, L"kernel->Read(Ehdr)");
+    if (ehdr.magic != ELF_MAGIC) {
+        panic(L"Invalid ELF Magic Number.");
+    }
 
     Elf64_Phdr phdr;
     uint64 phdr_size = sizeof(Elf64_Phdr);
