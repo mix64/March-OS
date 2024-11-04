@@ -33,10 +33,8 @@ uint64 load_kernel(EFI_FILE_PROTOCOL *root, uint16 *filename) {
         status = file->Read(file, &phdr.p_filesz, (void *)phdr.p_paddr);
         assert(status, L"kernel->Read(Segment)");
         if (phdr.p_filesz < phdr.p_memsz) {
-            uint64 diff = phdr.p_memsz - phdr.p_filesz;
-            for (uint64 i = 0; i < diff; i++) {
-                *(uint8 *)(phdr.p_paddr + phdr.p_filesz + i) = 0;
-            }
+            ST->BootServices->SetMem((void *)(phdr.p_paddr + phdr.p_filesz),
+                                     phdr.p_memsz - phdr.p_filesz, 0);
         }
     }
     file->Close(file);
@@ -44,8 +42,22 @@ uint64 load_kernel(EFI_FILE_PROTOCOL *root, uint16 *filename) {
     return ehdr.e_entry;
 }
 
-void efi_main(void *ImageHandle __attribute__((unused)),
-              EFI_SYSTEM_TABLE *SystemTable) {
+#define MMAP_SIZE 0x100000
+uint8 mmap_buf[MMAP_SIZE];
+
+void exit_boot_services(void *ImageHandle) {
+    uint64 mmap_size = MMAP_SIZE;
+    uint64 map_key, desc_size;
+    uint32 desc_version;
+    uint64 status = ST->BootServices->GetMemoryMap(
+        &mmap_size, (EFI_MEMORY_DESCRIPTOR *)mmap_buf, &map_key, &desc_size,
+        &desc_version);
+    assert(status, L"GetMemoryMap");
+    ST->BootServices->ExitBootServices(ImageHandle, map_key);
+    assert(status, L"ExitBootServices");
+}
+
+void efi_main(void *ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     efi_init(SystemTable);
     EFI_FILE_PROTOCOL *root = search_volume_contains_file(L"kernel.bin");
     if (root == NULL) {
@@ -53,6 +65,8 @@ void efi_main(void *ImageHandle __attribute__((unused)),
     }
     uint64 kernel_entry_addr = load_kernel(root, L"kernel.bin");
     put_param(L"Kernel Entry", kernel_entry_addr);
+    // ST->ConOut->ClearScreen(ST->ConOut);
+    exit_boot_services(ImageHandle);
     void (*entry)(void) = (void (*)(void))(kernel_entry_addr);
     entry();
     panic(L"Failed to Start kernel.");

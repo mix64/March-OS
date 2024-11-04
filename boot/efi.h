@@ -24,6 +24,15 @@ typedef struct {
     uint32 Reserved;
 } EFI_TABLE_HEADER;
 
+// 7.2.3 EFI_BOOT_SERVICES.GetMemoryMap()
+typedef struct {
+    uint32 Type;
+    uint64 PhysicalStart;
+    uint64 VirtualStart;
+    uint64 NumberOfPages;
+    uint64 Attribute;
+} EFI_MEMORY_DESCRIPTOR;
+
 // 4.4.1 EFI_BOOT_SERVICES
 typedef struct {
     EFI_TABLE_HEADER Hdr;
@@ -33,7 +42,9 @@ typedef struct {
     // Memory Services
     void *AllocatePages;
     void *FreePages;
-    void *GetMemoryMap;
+    uint64 (*GetMemoryMap)(  // 7.2.3 EFI_BOOT_SERVICES.GetMemoryMap()
+        uint64 *MemoryMapSize, EFI_MEMORY_DESCRIPTOR *MemoryMap, uint64 *MapKey,
+        uint64 *DescriptorSize, uint32 *DescriptorVersion);
     void *AllocatePool;
     void *FreePool;
     // Event & Timer Services
@@ -59,7 +70,7 @@ typedef struct {
     void *StartImage;
     void *Exit;
     void *UnloadImage;
-    void *ExitBootServices;
+    uint64 (*ExitBootServices)(void *ImageHandle, unsigned long long MapKey);
     // Miscellaneous Services
     void *GetNextMonotonicCount;
     void *Stall;
@@ -84,7 +95,7 @@ typedef struct {
     void *CalculateCrc32;
     // Miscellaneous Services
     void *CopyMem;
-    void *SetMem;
+    void (*SetMem)(void *Buffer, uint64 Size, uint8 Value);
     void *CreateEventEx;
 } EFI_BOOT_SERVICES;
 
