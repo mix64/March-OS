@@ -1,6 +1,8 @@
 #include "efi.h"
 #include "elf.h"
 
+KernelParams kernel_params;
+
 uint64 load_kernel(EFI_FILE_PROTOCOL *root, uint16 *filename) {
     EFI_FILE_PROTOCOL *file;
     uint64 status = root->Open(root, &file, filename, EFI_FILE_MODE_READ, 0);
@@ -51,9 +53,20 @@ void efi_main(void *ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     }
     uint64 kernel_entry_addr = load_kernel(root, L"kernel.bin");
     put_param(L"Kernel Entry", kernel_entry_addr);
-    // ST->ConOut->ClearScreen(ST->ConOut);
+
+    setup_frame_buffer(&kernel_params.screen);
+    put_param(L"Screen Base", (uint64)kernel_params.screen.base);
+    put_param(L"Screen Size", kernel_params.screen.size);
+    put_param(L"Screen HR", kernel_params.screen.hr);
+    put_param(L"Screen VR", kernel_params.screen.vr);
+
+    kernel_params.memtotal = get_total_memory_size();
+    put_param(L"Total Memory Size", kernel_params.memtotal);
+
     exit_boot_services(ImageHandle);
-    void (*entry)(void) = (void (*)(void))(kernel_entry_addr);
-    entry();
+
+    void (*entry)(KernelParams *) =
+        (void (*)(KernelParams *))(kernel_entry_addr);
+    entry(&kernel_params);
     panic(L"Failed to Start kernel.");
 }
