@@ -38,6 +38,7 @@ uint64 load_kernel(EFI_FILE_PROTOCOL *root, uint16 *filename) {
         }
     }
     file->Close(file);
+    root->Close(root);
 
     return ehdr.e_entry;
 }
@@ -53,7 +54,7 @@ void exit_boot_services(void *ImageHandle) {
         &mmap_size, (EFI_MEMORY_DESCRIPTOR *)mmap_buf, &map_key, &desc_size,
         &desc_version);
     assert(status, L"GetMemoryMap");
-    ST->BootServices->ExitBootServices(ImageHandle, map_key);
+    status = ST->BootServices->ExitBootServices(ImageHandle, map_key);
     assert(status, L"ExitBootServices");
 }
 
