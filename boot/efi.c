@@ -13,6 +13,9 @@ EFI_GUID GOP_GUID = {0x9042a9de,
 EFI_SYSTEM_TABLE *ST;
 EFI_GRAPHICS_OUTPUT_PROTOCOL *GOP;
 
+#define MMAP_SIZE 0x30000
+uint8 mmap_buf[MMAP_SIZE];
+
 void efi_init(EFI_SYSTEM_TABLE *SystemTable) {
     ST = SystemTable;
     ST->ConOut->ClearScreen(ST->ConOut);
@@ -54,4 +57,42 @@ EFI_FILE_PROTOCOL *search_volume_contains_file(uint16 *filename) {
         }
     }
     return NULL;
+}
+
+void setup_frame_buffer(FrameBuffer *fb) {
+    fb->base = (void *)GOP->Mode->FrameBufferBase;
+    fb->size = GOP->Mode->FrameBufferSize;
+    fb->hr = GOP->Mode->Info->HorizontalResolution;
+    fb->vr = GOP->Mode->Info->VerticalResolution;
+}
+
+uint64 get_total_memory_size() {
+    uint64 mmap_size = MMAP_SIZE;
+    uint64 mmap_key, desc_size;
+    uint32 desc_version;
+    uint64 status = ST->BootServices->GetMemoryMap(
+        &mmap_size, (EFI_MEMORY_DESCRIPTOR *)mmap_buf, &mmap_key, &desc_size,
+        &desc_version);
+    assert(status, L"GetMemoryMap@get_total_memory_size");
+
+    uint64 total_memory_size = 0;
+    uint64 entry_count = mmap_size / desc_size;
+    for (uint64 i = 0; i < entry_count; i++) {
+        EFI_MEMORY_DESCRIPTOR *e =
+            (EFI_MEMORY_DESCRIPTOR *)(mmap_buf + (i * desc_size));
+        total_memory_size += e->NumberOfPages * 0x1000;  // 4KiB
+    }
+    return total_memory_size;
+}
+
+void exit_boot_services(void *ImageHandle) {
+    uint64 mmap_size = MMAP_SIZE;
+    uint64 map_key, desc_size;
+    uint32 desc_version;
+    uint64 status = ST->BootServices->GetMemoryMap(
+        &mmap_size, (EFI_MEMORY_DESCRIPTOR *)mmap_buf, &map_key, &desc_size,
+        &desc_version);
+    assert(status, L"GetMemoryMap@exit_boot_services");
+    status = ST->BootServices->ExitBootServices(ImageHandle, map_key);
+    assert(status, L"ExitBootServices");
 }

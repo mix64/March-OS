@@ -43,21 +43,6 @@ uint64 load_kernel(EFI_FILE_PROTOCOL *root, uint16 *filename) {
     return ehdr.e_entry;
 }
 
-#define MMAP_SIZE 0x100000
-uint8 mmap_buf[MMAP_SIZE];
-
-void exit_boot_services(void *ImageHandle) {
-    uint64 mmap_size = MMAP_SIZE;
-    uint64 map_key, desc_size;
-    uint32 desc_version;
-    uint64 status = ST->BootServices->GetMemoryMap(
-        &mmap_size, (EFI_MEMORY_DESCRIPTOR *)mmap_buf, &map_key, &desc_size,
-        &desc_version);
-    assert(status, L"GetMemoryMap");
-    status = ST->BootServices->ExitBootServices(ImageHandle, map_key);
-    assert(status, L"ExitBootServices");
-}
-
 void efi_main(void *ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     efi_init(SystemTable);
     EFI_FILE_PROTOCOL *root = search_volume_contains_file(L"kernel.bin");

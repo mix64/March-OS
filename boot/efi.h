@@ -1,5 +1,6 @@
 #pragma once
 #include "types.h"
+#include "uefi.h"
 
 typedef struct {
     uint32 Data1;
@@ -23,6 +24,27 @@ typedef struct {
     uint32 CRC32;
     uint32 Reserved;
 } EFI_TABLE_HEADER;
+
+// 7.2.1 EFI_BOOT_SERVICES.AllocatePages()
+typedef enum {
+    EfiReservedMemoryType,
+    EfiLoaderCode,
+    EfiLoaderData,
+    EfiBootServicesCode,
+    EfiBootServicesData,
+    EfiRuntimeServicesCode,
+    EfiRuntimeServicesData,
+    EfiConventionalMemory,
+    EfiUnusableMemory,
+    EfiACPIReclaimMemory,
+    EfiACPIMemoryNVS,
+    EfiMemoryMappedIO,
+    EfiMemoryMappedIOPortSpace,
+    EfiPalCode,
+    EfiPersistentMemory,
+    EfiUnacceptedMemoryType,
+    EfiMaxMemoryType
+} EFI_MEMORY_TYPE;
 
 // 7.2.3 EFI_BOOT_SERVICES.GetMemoryMap()
 typedef struct {
@@ -123,7 +145,7 @@ typedef struct {
         uint64 SizeOfInfo;
         uint64 FrameBufferBase;
         uint64 FrameBufferSize;
-    }
+    } *Mode;
 } EFI_GRAPHICS_OUTPUT_PROTOCOL;
 
 // 13.5.1 EFI_FILE_PROTOCOL
@@ -202,6 +224,9 @@ void panic(uint16 *message);
 // efi.c
 void efi_init(EFI_SYSTEM_TABLE *SystemTable);
 struct EFI_FILE_PROTOCOL *search_volume_contains_file(uint16 *filename);
+void setup_frame_buffer(FrameBuffer *fb);
+uint64 get_total_memory_size();
+void exit_boot_services(void *ImageHandle);
 extern EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *SFSP;
 extern EFI_GRAPHICS_OUTPUT_PROTOCOL *GOP;
 extern EFI_SYSTEM_TABLE *ST;
