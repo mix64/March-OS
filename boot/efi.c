@@ -1,4 +1,5 @@
-#include "efi.h"
+#include <boot/efi.h>
+#include <boot/info.h>
 
 EFI_GUID SFSP_GUID = {0x0964e5b22,
                       0x6459,

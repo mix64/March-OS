@@ -1,11 +1,11 @@
-#include "uefi.h"
+#include <boot/info.h>
+#include <system.h>
 
-KernelParams kernel_params;
-uint64 screen_pointer;
+System SYSTEM;
 
 void clear_screen() {
-    char *screen = (char *)kernel_params.screen.base;
-    for (uint64 i = 0; i < kernel_params.screen.size; i += 4) {
+    char *screen = (char *)SYSTEM.screen.base;
+    for (uint64 i = 0; i < SYSTEM.screen.size; i += 4) {
         screen[i] = 0xFF;
         screen[i + 1] = 0xFF;
         screen[i + 2] = 0xFF;
@@ -13,12 +13,12 @@ void clear_screen() {
     }
 }
 
-int kernel_main(KernelParams *params) {
-    kernel_params.memtotal = params->memtotal;
-    kernel_params.screen.base = params->screen.base;
-    kernel_params.screen.size = params->screen.size;
-    kernel_params.screen.hr = params->screen.hr;
-    kernel_params.screen.vr = params->screen.vr;
+int kernel_main(BootInfo *bi) {
+    SYSTEM.memtotal = bi->memtotal;
+    SYSTEM.screen.base = bi->screen.base;
+    SYSTEM.screen.size = bi->screen.size;
+    SYSTEM.screen.hr = bi->screen.hr;
+    SYSTEM.screen.vr = bi->screen.vr;
     clear_screen();
     while (1);
 }

@@ -21,7 +21,7 @@ boot.efi:
 	mv boot/boot.efi root/EFI/BOOT/BOOTX64.EFI
 
 kernel.bin:
-	$(CC) $(CFLAGS) -c kernel.c
+	$(CC) $(CFLAGS) -c -I ./include kernel.c
 	$(CC) $(CFLAGS) -Wa,--noexecstack -c entry.S
 	$(LD) -T kernel.ls -o root/kernel.bin kernel.o entry.o
 

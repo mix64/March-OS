@@ -2,7 +2,7 @@
 .globl _entry
 _entry:
 /* 
-    kernel_params form UEFI in %rcx
+    boot_info form UEFI in %rcx
     See: https://wiki.osdev.org/Calling_Conventions (Microsoft x64 calling convention)
 */
     pushq %rcx
@@ -23,7 +23,7 @@ _entry:
     movq %rax, %r15
 
 /* 
-    send kernel_params to kernel_main() use %rdi
+    send boot_info to kernel_main() use %rdi
     See: https://wiki.osdev.org/Calling_Conventions (System V X86_64 calling convention)
 */
     popq %rdi

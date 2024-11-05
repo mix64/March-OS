@@ -1,7 +1,8 @@
-#include "efi.h"
-#include "elf.h"
+#include <boot/efi.h>
+#include <boot/info.h>
+#include <elf.h>
 
-KernelParams kernel_params;
+BootInfo boot_info;
 
 uint64 load_kernel(EFI_FILE_PROTOCOL *root, uint16 *filename) {
     EFI_FILE_PROTOCOL *file;
@@ -54,19 +55,18 @@ void efi_main(void *ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     uint64 kernel_entry_addr = load_kernel(root, L"kernel.bin");
     put_param(L"Kernel Entry", kernel_entry_addr);
 
-    setup_frame_buffer(&kernel_params.screen);
-    put_param(L"Screen Base", (uint64)kernel_params.screen.base);
-    put_param(L"Screen Size", kernel_params.screen.size);
-    put_param(L"Screen HR", kernel_params.screen.hr);
-    put_param(L"Screen VR", kernel_params.screen.vr);
+    setup_frame_buffer(&boot_info.screen);
+    put_param(L"Screen Base", (uint64)boot_info.screen.base);
+    put_param(L"Screen Size", boot_info.screen.size);
+    put_param(L"Screen HR", boot_info.screen.hr);
+    put_param(L"Screen VR", boot_info.screen.vr);
 
-    kernel_params.memtotal = get_total_memory_size();
-    put_param(L"Total Memory Size", kernel_params.memtotal);
+    boot_info.memtotal = get_total_memory_size();
+    put_param(L"Total Memory Size", boot_info.memtotal);
 
     exit_boot_services(ImageHandle);
 
-    void (*entry)(KernelParams *) =
-        (void (*)(KernelParams *))(kernel_entry_addr);
-    entry(&kernel_params);
+    void (*entry)(BootInfo *) = (void (*)(BootInfo *))(kernel_entry_addr);
+    entry(&boot_info);
     panic(L"Failed to Start kernel.");
 }

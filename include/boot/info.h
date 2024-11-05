@@ -1,5 +1,5 @@
 #pragma once
-#include "types.h"
+#include <types.h>
 
 typedef struct {
     void *base;
@@ -11,4 +11,4 @@ typedef struct {
 typedef struct {
     uint64 memtotal;
     FrameBuffer screen;
-} KernelParams;
+} BootInfo;

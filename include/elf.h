@@ -1,5 +1,5 @@
 #pragma once
-#include "types.h"
+#include <types.h>
 
 typedef uint16 Elf64_Half;
 typedef uint32 Elf64_Word;

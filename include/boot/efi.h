@@ -1,6 +1,5 @@
 #pragma once
-#include "types.h"
-#include "uefi.h"
+#include <types.h>
 
 typedef struct {
     uint32 Data1;

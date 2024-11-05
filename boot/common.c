@@ -1,4 +1,4 @@
-#include "efi.h"
+#include <boot/efi.h>
 
 void puts(uint16 *s) { ST->ConOut->OutputString(ST->ConOut, s); }
 
