@@ -60,13 +60,6 @@ EFI_FILE_PROTOCOL *search_volume_contains_file(uint16 *filename) {
     return NULL;
 }
 
-void setup_frame_buffer(FrameBuffer *fb) {
-    fb->base = (void *)GOP->Mode->FrameBufferBase;
-    fb->size = GOP->Mode->FrameBufferSize;
-    fb->hr = GOP->Mode->Info->HorizontalResolution;
-    fb->vr = GOP->Mode->Info->VerticalResolution;
-}
-
 uint64 get_total_memory_size() {
     uint64 mmap_size = MMAP_SIZE;
     uint64 mmap_key, desc_size;

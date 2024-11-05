@@ -223,7 +223,6 @@ void panic(uint16 *message);
 // efi.c
 void efi_init(EFI_SYSTEM_TABLE *SystemTable);
 struct EFI_FILE_PROTOCOL *search_volume_contains_file(uint16 *filename);
-void setup_frame_buffer(FrameBuffer *fb);
 uint64 get_total_memory_size();
 void exit_boot_services(void *ImageHandle);
 extern EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *SFSP;

@@ -55,7 +55,11 @@ void efi_main(void *ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     uint64 kernel_entry_addr = load_kernel(root, L"kernel.bin");
     put_param(L"Kernel Entry", kernel_entry_addr);
 
-    setup_frame_buffer(&boot_info.screen);
+    // Setup FrameBuffer
+    boot_info.screen.base = (void *)GOP->Mode->FrameBufferBase;
+    boot_info.screen.size = GOP->Mode->FrameBufferSize;
+    boot_info.screen.hr = GOP->Mode->Info->HorizontalResolution;
+    boot_info.screen.vr = GOP->Mode->Info->VerticalResolution;
     put_param(L"Screen Base", (uint64)boot_info.screen.base);
     put_param(L"Screen Size", boot_info.screen.size);
     put_param(L"Screen HR", boot_info.screen.hr);
