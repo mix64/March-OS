@@ -88,7 +88,8 @@ typedef struct {
         // 7.3.15 EFI_BOOT_SERVICES.LocateHandleBuffer()
         EFI_LOCATE_SEARCH_TYPE SearchType, EFI_GUID *Protocol, void *SearchKey,
         uint64 *NoHandles, void ***Buffer);
-    void *LocateProtocol;
+    uint64 (*LocateProtocol)(EFI_GUID *Protocol, void *Registration,
+                             void **Interface);
     void *InstallMultipleProtocolInterfaces;
     void *UninstallMultipleProtocolInterfaces;
     // 32-bit CRC Services
@@ -98,6 +99,32 @@ typedef struct {
     void (*SetMem)(void *Buffer, uint64 Size, uint8 Value);
     void *CreateEventEx;
 } EFI_BOOT_SERVICES;
+
+// 12.9.2 EFI_GRAPHICS_OUTPUT_PROTOCOL
+typedef struct {
+    uint64 QueryMode;
+    uint64 SetMode;
+    uint64 Blt;
+    struct EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE {
+        uint32 MaxMode;
+        uint32 Mode;
+        struct EFI_GRAPHICS_OUTPUT_MODE_INFORMATION {
+            uint32 Version;
+            uint32 HorizontalResolution;
+            uint32 VerticalResolution;
+            enum EFI_GRAPHICS_PIXEL_FORMAT {
+                PixelRedGreenBlueReserved8BitPerColor,
+                PixelBlueGreenRedReserved8BitPerColor,
+                PixelBitMask,
+                PixelBltOnly,
+                PixelFormatMax
+            } PixelFormat;
+        } *Info;
+        uint64 SizeOfInfo;
+        uint64 FrameBufferBase;
+        uint64 FrameBufferSize;
+    }
+} EFI_GRAPHICS_OUTPUT_PROTOCOL;
 
 // 13.5.1 EFI_FILE_PROTOCOL
 typedef struct EFI_FILE_PROTOCOL {
@@ -176,4 +203,5 @@ void panic(uint16 *message);
 void efi_init(EFI_SYSTEM_TABLE *SystemTable);
 struct EFI_FILE_PROTOCOL *search_volume_contains_file(uint16 *filename);
 extern EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *SFSP;
+extern EFI_GRAPHICS_OUTPUT_PROTOCOL *GOP;
 extern EFI_SYSTEM_TABLE *ST;
