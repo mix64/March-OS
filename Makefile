@@ -20,10 +20,14 @@ boot.efi:
 	make -C boot
 	mv boot/boot.efi root/EFI/BOOT/BOOTX64.EFI
 
-kernel.bin:
-	$(CC) $(CFLAGS) -c -I ./include kernel.c
-	$(CC) $(CFLAGS) -Wa,--noexecstack -c entry.S
-	$(LD) -T kernel.ls -o root/kernel.bin kernel.o entry.o
+kernel.bin: entry.o kernel.o serial.o
+	$(LD) -T kernel.ls -o root/kernel.bin $^
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c -I ./include $<
+
+%.o: %.S
+	$(CC) $(CFLAGS) -Wa,--noexecstack -c $<
 
 clean:
 	-rm -f root/EFI/BOOT/BOOTX64.EFI root/kernel.bin *.o *.d

@@ -1,4 +1,5 @@
 #include <boot/info.h>
+#include <serial.h>
 #include <system.h>
 
 System SYSTEM;
@@ -20,5 +21,7 @@ int kernel_main(BootInfo *bi) {
     SYSTEM.screen.hr = bi->screen.hr;
     SYSTEM.screen.vr = bi->screen.vr;
     clear_screen();
+    init_serial();
+    write_serial("Hello, World!");
     while (1);
 }
