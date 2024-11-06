@@ -11,7 +11,7 @@ CFLAGS += -fno-pie -nopie
 endif
 
 run: build
-	qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -m 512M -vga std -hda fat:rw:root
+	qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -m 512M -chardev stdio,mux=on,id=com1 -serial chardev:com1 -hda fat:rw:root
 
 build: boot.efi kernel.bin
 
