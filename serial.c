@@ -29,10 +29,66 @@ int init_serial() {
 
 int is_transmit_empty() { return inb(COM1_PORT + 5) & 0x20; }
 
-void write_serial(char* str) {
+void putchar(char c) {
     while (is_transmit_empty() == 0);
+    outb(COM1_PORT, c);
+}
 
+void puts(char *str) {
     for (uint64 i = 0; str[i] != '\0'; i++) {
-        outb(COM1_PORT, str[i]);
+        putchar(str[i]);
+    }
+}
+
+void printn(uint64 n, uint64 base) {
+    static char digits[] = "0123456789ABCDEF";
+    uint64 m;
+    if ((m = n / base)) {
+        printn(m, base);
+    }
+    putchar(digits[(n % base)]);
+}
+
+void kprintf(char *fmt, ...) {
+    uint64 *argv;
+    char *s;
+    char c;
+
+    argv = (uint64 *)(&fmt + 1);
+
+    while ((c = *fmt++) != 0) {
+        if (c != '%') {
+            putchar(c);
+            continue;
+        }
+        switch (c = *fmt++) {
+            case 'd':
+                printn(*argv++, 10);
+                break;
+            case 'x':
+            case 'p':
+                kprintf("0x");
+                printn(*argv++, 16);
+                break;
+            case 'o':
+                kprintf("0o");
+                printn(*argv++, 8);
+                break;
+            case 'c':
+                putchar(*argv++);
+                break;
+            case 's':
+                if ((s = (char *)*argv++) == 0) {
+                    kprintf("(null)");
+                } else {
+                    while ((c = *s++)) {
+                        putchar(c);
+                    }
+                }
+                break;
+            default:
+                kprintf("Unknown format %c", c);
+                return;
+        }
     }
 }

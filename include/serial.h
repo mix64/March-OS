@@ -2,4 +2,4 @@
 #include <types.h>
 
 int init_serial();
-void write_serial(char* str);
+void kprintf(char *fmt, ...);

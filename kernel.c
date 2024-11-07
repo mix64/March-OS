@@ -22,6 +22,6 @@ int kernel_main(BootInfo *bi) {
     SYSTEM.screen.vr = bi->screen.vr;
     clear_screen();
     init_serial();
-    write_serial("Hello, World!");
+    kprintf("Hello, World!\n");
     while (1);
 }
