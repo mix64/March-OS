@@ -1,3 +1,4 @@
+#include <asm.h>
 #include <boot/info.h>
 #include <serial.h>
 #include <system.h>
@@ -22,6 +23,8 @@ int kernel_main(BootInfo *bi) {
     SYSTEM.screen.vr = bi->screen.vr;
     clear_screen();
     init_serial();
-    kprintf("Hello, World!\n");
+    kprint("Hello, World!\n");
+    uint64 cr3 = lcr3();
+    kprintf("cr3: %x\n", cr3);
     while (1);
 }

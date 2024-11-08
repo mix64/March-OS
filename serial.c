@@ -34,12 +34,6 @@ void putchar(char c) {
     outb(COM1_PORT, c);
 }
 
-void puts(char *str) {
-    for (uint64 i = 0; str[i] != '\0'; i++) {
-        putchar(str[i]);
-    }
-}
-
 void printn(uint64 n, uint64 base) {
     static char digits[] = "0123456789ABCDEF";
     uint64 m;
@@ -49,45 +43,57 @@ void printn(uint64 n, uint64 base) {
     putchar(digits[(n % base)]);
 }
 
-void kprintf(char *fmt, ...) {
-    uint64 *argv;
+void kprint(char *str) {
+    for (uint64 i = 0; str[i] != '\0'; i++) {
+        putchar(str[i]);
+    }
+}
+
+void _kprintf(char *fmt, uint8 argc, void **argv) {
     char *s;
     char c;
-
-    argv = (uint64 *)(&fmt + 1);
+    uint8 arg_index = 0;
 
     while ((c = *fmt++) != 0) {
         if (c != '%') {
             putchar(c);
             continue;
         }
-        switch (c = *fmt++) {
+
+        c = *fmt++;
+
+        if (arg_index >= argc) {
+            kprint("Error: Not enough arguments provided for format string.\n");
+            return;
+        }
+
+        switch (c) {
             case 'd':
-                printn(*argv++, 10);
+                printn((uint64)argv[arg_index++], 10);
                 break;
             case 'x':
             case 'p':
-                kprintf("0x");
-                printn(*argv++, 16);
+                kprint("0x");
+                printn((uint64)argv[arg_index++], 16);
                 break;
             case 'o':
-                kprintf("0o");
-                printn(*argv++, 8);
+                kprint("0o");
+                printn((uint64)argv[arg_index++], 8);
                 break;
             case 'c':
-                putchar(*argv++);
+                putchar(*(char *)argv[arg_index++]);
                 break;
             case 's':
-                if ((s = (char *)*argv++) == 0) {
-                    kprintf("(null)");
+                s = (char *)argv[arg_index++];
+                if (s == NULL) {
+                    kprint("(null)");
                 } else {
-                    while ((c = *s++)) {
-                        putchar(c);
-                    }
+                    kprint(s);
                 }
                 break;
             default:
-                kprintf("Unknown format %c", c);
+                kprint("Unknown format ");
+                putchar(c);
                 return;
         }
     }
