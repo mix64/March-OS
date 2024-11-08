@@ -5,7 +5,7 @@
 typedef struct {
     uint64 memtotal;
     struct FrameBuffer {
-        void *base;
+        uintptr base;
         uint64 size;
         uint32 hr;
         uint32 vr;

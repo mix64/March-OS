@@ -56,7 +56,7 @@ void efi_main(void *ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     put_param(L"Kernel Entry", kernel_entry_addr);
 
     // Setup FrameBuffer
-    boot_info.screen.base = (void *)GOP->Mode->FrameBufferBase;
+    boot_info.screen.base = (uintptr)GOP->Mode->FrameBufferBase;
     boot_info.screen.size = GOP->Mode->FrameBufferSize;
     boot_info.screen.hr = GOP->Mode->Info->HorizontalResolution;
     boot_info.screen.vr = GOP->Mode->Info->VerticalResolution;

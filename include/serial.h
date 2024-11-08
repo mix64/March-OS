@@ -3,7 +3,7 @@
 
 int init_serial();
 void kprint(char *str);
-void _kprintf(char *fmt, uint8 argc, void **argv);
+void _kprintf(char *fmt, uint8 argc, uintptr *argv);
 
 #define KPRINTF_ARG_COUNT_IMPL(_1, _2, _3, _4, _5, _6, _7, _8, N, ...) N
 #define KPRINTF_ARG_COUNT(...) \
@@ -11,6 +11,6 @@ void _kprintf(char *fmt, uint8 argc, void **argv);
 
 #define kprintf(fmt, ...)                                             \
     do {                                                              \
-        void *_kprintf_args[] = {(void *)__VA_ARGS__};                \
+        uintptr _kprintf_args[] = {(uintptr)__VA_ARGS__};             \
         _kprintf(fmt, KPRINTF_ARG_COUNT(__VA_ARGS__), _kprintf_args); \
     } while (0)

@@ -11,3 +11,5 @@ typedef long long int64;
 typedef long int32;
 typedef short int16;
 typedef char int8;
+
+typedef unsigned long int uintptr;

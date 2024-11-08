@@ -49,7 +49,7 @@ void kprint(char *str) {
     }
 }
 
-void _kprintf(char *fmt, uint8 argc, void **argv) {
+void _kprintf(char *fmt, uint8 argc, uintptr *argv) {
     char *s;
     char c;
     uint8 arg_index = 0;

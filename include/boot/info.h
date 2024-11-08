@@ -2,7 +2,7 @@
 #include <types.h>
 
 typedef struct {
-    void *base;
+    uintptr base;
     uint64 size;
     uint32 hr;
     uint32 vr;
