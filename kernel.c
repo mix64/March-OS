@@ -23,7 +23,7 @@ int kernel_main(BootInfo *bi) {
     SYSTEM.screen.vr = bi->screen.vr;
     clear_screen();
     init_serial();
-    kprint("Hello, World!\n");
+    kprintf("Hello, World!\n");
     uint64 cr3 = lcr3();
     kprintf("cr3: %x\n", cr3);
     while (1);
