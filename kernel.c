@@ -1,9 +1,16 @@
 #include <asm.h>
 #include <boot/info.h>
+#include <mm.h>
 #include <serial.h>
 #include <system.h>
 
 System SYSTEM;
+
+void kernel_main() {
+    kprintf("Hello, Kernel!\n");
+    memory_init();
+    while (1);
+}
 
 void clear_screen() {
     char *screen = (char *)SYSTEM.screen.base;
@@ -15,7 +22,7 @@ void clear_screen() {
     }
 }
 
-int kernel_main(BootInfo *bi) {
+void kernel_stub(BootInfo *bi) {
     SYSTEM.memtotal = bi->memtotal;
     SYSTEM.screen.base = bi->screen.base;
     SYSTEM.screen.size = bi->screen.size;
@@ -23,8 +30,5 @@ int kernel_main(BootInfo *bi) {
     SYSTEM.screen.vr = bi->screen.vr;
     clear_screen();
     init_serial();
-    kprintf("Hello, World!\n");
-    uint64 cr3 = lcr3();
-    kprintf("cr3: %x\n", cr3);
-    while (1);
+    kernel_main();
 }

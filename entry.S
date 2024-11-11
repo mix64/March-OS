@@ -23,12 +23,12 @@ _entry:
     movq %rax, %r15
 
 /* 
-    send boot_info to kernel_main() use %rdi
+    send boot_info to kernel_stub() use %rdi
     See: https://wiki.osdev.org/Calling_Conventions (System V X86_64 calling convention)
 */
     popq %rdi
 
-    jmp kernel_main
+    jmp kernel_stub
 
 /* 
     Global Descriptor Table
