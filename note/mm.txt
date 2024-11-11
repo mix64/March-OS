@@ -1,0 +1,18 @@
+qemu-system-x86_64 -m 512M
+
+paddr_max = 40bit (CPUID: 80000008)
+vaddr_max = 48bit (PML4)
+
+   0 |----------|-------------------------------------------------|--------------|
+     | 2MB page |                                                 |              |
+502M |----------|                                                 |              |
+     | 4KB page |                                                 |              |
+504M |----------| Physical Memory (exist, already mapped)         |              |
+     | 2MB page |                                                 | Kernel Space |
+510M |----------|                                                 |              |
+     | 4KB page |                                                 |              |
+512M |----------|-------------------------------------------------|              |
+     | 2MB page | Physical Memory (non-exist, but already mapped) |              |
+  1T |----------|-------------------------------------------------|--------------|
+     |          | Virtual Memory (non-exist, not mapped)          | User Space   |
+256T |----------|-------------------------------------------------|--------------|
