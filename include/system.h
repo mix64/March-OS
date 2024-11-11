@@ -11,3 +11,5 @@ typedef struct {
         uint32 vr;
     } screen;
 } System;
+
+extern System SYSTEM;

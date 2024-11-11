@@ -20,7 +20,7 @@ boot.efi:
 	make -C boot
 	mv boot/boot.efi root/EFI/BOOT/BOOTX64.EFI
 
-kernel.bin: entry.o kernel.o serial.o
+kernel.bin: entry.o kernel.o serial.o mm.o
 	$(LD) -T kernel.ls -o root/kernel.bin $^
 
 %.o: %.c

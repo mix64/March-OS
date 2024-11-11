@@ -20,3 +20,13 @@ static inline uint64 lcr3() {
     asm volatile("movq %%cr3,%0" : "=r"(val));
     return val;
 }
+
+static inline uint64 cpuid(uint64 code) {
+    uint64 rax, rbx, rcx, rdx;
+    asm volatile("cpuid"
+                 : "=a"(rax), "=b"(rbx), "=c"(rcx), "=d"(rdx)
+                 : "a"(code));
+    return rax;
+}
+
+#define MAX_PADDR_BITS (cpuid(0x80000008) & 0xFF)
