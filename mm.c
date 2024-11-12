@@ -13,6 +13,21 @@ extern char kernel_end[];
 #define PG_US (0x1ULL << 2)  // User/Supervisor (0=Supervisor, 1=User)
 #define PG_PS (1ULL << 7)    // Page size (1=PageFrame, 0=PagePointer)
 
+#define KiB(x) (x << 10)
+#define MiB(x) (x << 20)
+#define GiB(x) (x << 30)
+#define PAGE_SIZE KiB(4ULL)
+
+void kfree(void *addr) {
+    if (addr == NULL || (uintptr)addr < (uintptr)kernel_end ||
+        (uintptr)addr >= SYSTEM.memtotal) {
+        panic("kfree: invalid address %x", addr);
+    }
+    memset(addr, 0, PAGE_SIZE);
+    *(uintptr *)addr = (uintptr)freemap;
+    freemap = addr;
+}
+
 void memory_init() {
     uint64 bitmask = (BIT64_MASK(MAX_PADDR_BITS) & ~BIT64_MASK(12));
 

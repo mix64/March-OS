@@ -30,3 +30,10 @@ static inline uint64 cpuid(uint64 code) {
 }
 
 #define MAX_PADDR_BITS (cpuid(0x80000008) & 0xFF)
+
+static inline void memset(void *addr, uint64 data, uint64 cnt) {
+    asm volatile("cld; rep stosb"
+                 : "=D"(addr), "=c"(cnt)
+                 : "0"(addr), "1"(cnt), "a"(data)
+                 : "memory", "cc");
+}

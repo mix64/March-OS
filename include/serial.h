@@ -29,3 +29,9 @@ void _kprintf(char *fmt, uint8 argc, uintptr *argv);
         _kprintf(fmt, KPRINTF_ARG_COUNT(__VA_ARGS__),                        \
                  KPRINTF_ARG_COUNT(__VA_ARGS__) > 0 ? _kprintf_args : NULL); \
     } while (0)
+
+#define panic(fmt, ...)              \
+    do {                             \
+        kprintf(fmt, ##__VA_ARGS__); \
+        while (1);                   \
+    } while (0)
