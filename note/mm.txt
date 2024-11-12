@@ -4,15 +4,19 @@ paddr_max = 40bit (CPUID: 80000008)
 vaddr_max = 48bit (PML4)
 
    0 |----------|-------------------------------------------------|--------------|
-     | 2MB page |                                                 |              |
-502M |----------|                                                 |              |
-     | 4KB page |                                                 |              |
-504M |----------| Physical Memory (exist, already mapped)         |              |
-     | 2MB page |                                                 | Kernel Space |
+     | 2MB Page | <- Kernel                                       |              |
+448M |----------|                                                 |              |
+     | 2MB (RO) |                                                 |              |
+450M |----------|                                                 |              |
+     | 2MB      |                                                 |              |
+502M |----------| Physical Memory (exist, already mapped)         | Kernel Space |
+     | 4KB      |                                                 |              |
+504M |----------|                                                 |              |
+     | 2MB (RO) |                                                 |              |
 510M |----------|                                                 |              |
-     | 4KB page |                                                 |              |
+     | 4KB      | <- Stack                                        |              |
 512M |----------|-------------------------------------------------|              |
-     | 2MB page | Physical Memory (non-exist, but already mapped) |              |
+     | 2MB      | Physical Memory (non-exist, but already mapped) |              |
   1T |----------|-------------------------------------------------|--------------|
      |          | Virtual Memory (non-exist, not mapped)          | User Space   |
 256T |----------|-------------------------------------------------|--------------|
