@@ -3,7 +3,7 @@
 #include <serial.h>
 #include <system.h>
 
-uintptr *freemap_4k, *freemap_2m;
+uintptr *freemap;
 extern char kernel_end[];
 
 #define BIT64_MASK(n) ((1ULL << (n)) - 1)
@@ -33,6 +33,7 @@ void memory_init() {
 
     uint64 cr3 = lcr3();
     uint64 page_1gb = 0, page_2mb = 0, page_4kb = 0;
+    uint64 allocatable_max = 0;
 
     uintptr *pml4 = (uintptr *)(cr3 & bitmask);
     for (uint64 i = 0; i < 512; i++) {
@@ -53,21 +54,39 @@ void memory_init() {
                 if ((pd[k] & PG_P) == 0) {
                     continue;
                 }
+                if ((pd[k] & PG_RW) == 0) {
+                    if (allocatable_max == 0) {
+                        allocatable_max = pd[k] & (BIT64_MASK(MAX_PADDR_BITS) &
+                                                   ~BIT64_MASK(20));
+                    }
+                }
                 if (pd[k] & PG_PS) {
                     page_2mb++;
                     continue;
                 }
                 uint64 *pt = (uint64 *)(pd[k] & bitmask);
                 for (uint64 l = 0; l < 512; l++) {
-                    if ((pt[k] & 1) == 0) {
+                    if ((pt[k] & PG_P) == 0) {
                         continue;
+                    }
+                    if ((pt[l] & PG_RW) == 0) {
+                        if (allocatable_max == 0) {
+                            allocatable_max = pt[l] & bitmask;
+                        }
                     }
                     page_4kb++;
                 }
             }
         }
     }
-    kprintf("page_1gb: %x\n", page_1gb);
-    kprintf("page_2mb: %x\n", page_2mb);
-    kprintf("page_4kb: %x\n", page_4kb);
+    kprintf("1GB Page: %x\n", page_1gb);
+    kprintf("2MB Page: %x\n", page_2mb);
+    kprintf("4KB Page: %x\n", page_4kb);
+    kprintf("Allocatable Max Address: %x\n", allocatable_max);
+
+    for (uint64 addr = (allocatable_max - PAGE_SIZE);
+         addr >= (uint64)kernel_end; addr -= PAGE_SIZE) {
+        kfree((void *)addr);
+    }
+    kprintf("freemap: %x\n", freemap);
 }
