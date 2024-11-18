@@ -3,12 +3,15 @@
 #include <mm.h>
 #include <serial.h>
 #include <system.h>
+#include <x86.h>
 
 System SYSTEM;
 
 void kernel_main() {
     kprintf("Hello, Kernel!\n");
     memory_init();
+    idt_init();
+    asm volatile("int $0x3");
     while (1);
 }
 
