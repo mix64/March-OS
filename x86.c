@@ -5,8 +5,8 @@ struct gatedesc idt[256];
 static uint16 idtr[5];
 extern uint64 vectors[];
 
-#define SEG_KDATA 0x30
-#define SEG_KCODE 0x38
+#define SEG_KCODE 0x08
+#define SEG_KDATA 0x10
 
 void idt_init() {
     for (int i = 0; i < 256; i++) {

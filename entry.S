@@ -1,6 +1,23 @@
 .code64
 .globl _entry
 _entry:
+/* setup GDT */
+    lea gdtdesc(%rip), %rax          /* Load gdtr */
+    lgdt (%rax)
+
+    mov $0x10, %ax                   /* Kernel DS */
+    mov %ax, %ds
+    mov %ax, %ss
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
+
+    pushq $0x8                       /* Kernel CS  */
+    lea .ret_label(%rip), %rax       /* get return address */
+    pushq %rax
+    lretq                            /* change code segment */
+.ret_label:
+
 /* 
     boot_info form UEFI in %rcx
     See: https://wiki.osdev.org/Calling_Conventions (Microsoft x64 calling convention)
@@ -50,3 +67,19 @@ _entry:
 
     TODO: Need to implement a User Segment?
 */
+
+.section .data
+.p2align 3
+.globl gdt
+gdt:
+    .quad 0x0000000000000000 /* Null descriptor */
+    .quad 0x00af9a000000ffff /* Kernel CS64: base=0, limit=0xfffff, Access=0x9A, Flags=0xA  */
+    .quad 0x00cf92000000ffff /* Kernel DS: base=0, limit=0xfffff, Access=0x92, Flags=0xC  */
+    .quad 0x00affa000000ffff /* User CS64: base=0, limit=0xfffff, Access=0xFA, Flags=0xA  */
+    .quad 0x00cff2000000ffff /* User DS: base=0, limit=0xfffff, Access=0xF2, Flags=0xC  */
+    .quad 0x0000000000000000 /* Task State Segment */
+
+.section .data
+gdtdesc:
+    .word (gdtdesc - gdt - 1) /* Limit (Size) */
+    .quad gdt
