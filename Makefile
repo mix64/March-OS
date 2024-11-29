@@ -10,6 +10,8 @@ ifneq ($(shell $(CC) -dumpspecs 2>/dev/null | grep -e '[^f]nopie'),)
 CFLAGS += -fno-pie -nopie
 endif
 
+CFLAGS += -D__DEBUG__
+
 run: build
 	qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -m 512M -chardev stdio,mux=on,id=com1 -serial chardev:com1 -hda fat:rw:root
 
@@ -20,7 +22,7 @@ boot.efi:
 	make -C boot
 	mv boot/boot.efi root/EFI/BOOT/BOOTX64.EFI
 
-kernel.bin: entry.o kernel.o serial.o mm.o vectors.o trap.o x86.o
+kernel.bin: apic.o entry.o kernel.o serial.o mm.o vectors.o trap.o x86.o
 	$(LD) -T kernel.ls -o root/kernel.bin $^
 
 %.o: %.c

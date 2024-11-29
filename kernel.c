@@ -11,6 +11,7 @@ void kernel_main() {
     kprintf("Hello, Kernel!\n");
     memory_init();
     idt_init();
+    apic_init();
     asm volatile("int $0x3");
     while (1);
 }

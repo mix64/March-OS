@@ -37,3 +37,11 @@ static inline void memset(void *addr, uint64 data, uint64 cnt) {
                  : "0"(addr), "1"(cnt), "a"(data)
                  : "memory", "cc");
 }
+
+static inline void rdmsr(uint32 msr, uint32 *lo, uint32 *hi) {
+    asm volatile("rdmsr" : "=a"(*lo), "=d"(*hi) : "c"(msr));
+}
+
+static inline void wrmsr(uint32 msr, uint32 lo, uint32 hi) {
+    asm volatile("wrmsr" ::"a"(lo), "d"(hi), "c"(msr));
+}
