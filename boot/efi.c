@@ -74,7 +74,10 @@ uint64 get_total_memory_size() {
     for (uint64 i = 0; i < entry_count; i++) {
         EFI_MEMORY_DESCRIPTOR *e =
             (EFI_MEMORY_DESCRIPTOR *)(mmap_buf + (i * desc_size));
-        total_memory_size += e->NumberOfPages * 0x1000;  // 4KiB
+        uint64 paddr = e->PhysicalStart + e->NumberOfPages * 0x1000;  // 4KiB
+        if (paddr > total_memory_size) {
+            total_memory_size = paddr;
+        }
     }
     return total_memory_size;
 }
