@@ -7,6 +7,16 @@
 uintptr *freemap;
 extern char kernel_end[];
 
+void *kalloc() {
+    if (freemap == NULL) {
+        panic("kalloc: out of memory");
+    }
+    void *addr = (void *)freemap;
+    freemap = (uintptr *)*freemap;
+    memset(addr, 0, PAGE_SIZE);
+    return addr;
+}
+
 void kfree(void *addr) {
     if (addr == NULL || (uintptr)addr < (uintptr)kernel_end ||
         (uintptr)addr >= SYSTEM.memtotal) {
