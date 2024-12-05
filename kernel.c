@@ -9,7 +9,7 @@ System SYSTEM;
 
 void kernel_main() {
     kprintf("Hello, Kernel!\n");
-    memory_init();
+    mm_init();
     idt_init();
     apic_init();
     asm volatile("int $0x3");
@@ -32,7 +32,7 @@ void kernel_stub(BootInfo *bi) {
     SYSTEM.screen.size = bi->screen.size;
     SYSTEM.screen.hr = bi->screen.hr;
     SYSTEM.screen.vr = bi->screen.vr;
-    clear_screen();
+    // clear_screen();
     init_serial();
     kernel_main();
 }
