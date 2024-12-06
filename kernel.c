@@ -10,6 +10,7 @@ System SYSTEM;
 void kernel_main() {
     kprintf("Hello, Kernel!\n");
     mm_init();
+    vm_init();
     idt_init();
     apic_init();
     asm volatile("int $0x3");

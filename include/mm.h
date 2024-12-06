@@ -16,6 +16,12 @@
 #define PG_PS (1ULL << 7)    // Page size (1=PageFrame, 0=PagePointer)
 #define PD_PAT (1ULL << 12)  // Page Attribute Table
 
+// mm.c
 void mm_init();
-pte_t *walkpgdir(uintptr va);
+void *kalloc();
+void kfree(void *addr);
+
+// vm.c
+void vm_init();
+pte_t *walk_pgdir(uintptr va, bool create, bool large);
 void setflag(pte_t *pte, uint64 flag);

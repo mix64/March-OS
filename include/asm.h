@@ -15,10 +15,14 @@ static inline void cli() { asm volatile("cli"); }
 
 static inline void sti() { asm volatile("sti"); }
 
-static inline uint64 lcr3() {
-    uint64 val;
-    asm volatile("movq %%cr3,%0" : "=r"(val));
-    return val;
+static inline uintptr lcr3() {
+    uintptr addr;
+    asm volatile("movq %%cr3,%0" : "=r"(addr));
+    return addr;
+}
+
+static inline void scr3(void *addr) {
+    asm volatile("movq %0,%%cr3" : : "r"(addr));
 }
 
 static inline uint64 cpuid(uint64 code) {
