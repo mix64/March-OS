@@ -1,4 +1,5 @@
 #include <asm.h>
+#include <mm.h>
 #include <serial.h>
 #include <x86.h>
 
@@ -17,10 +18,11 @@
 #define IA32_APIC_BASE_MSR_BSP (1 << 8)
 #define IA32_APIC_BASE_MSR_ENABLE (1 << 11)
 
-#define IA32_APIC_SVR_OFFSET 0xF0 /* Spurious Interrupt Vector Register */
-#define IA32_APIC_SVR_ENABLE (1 << 8)
+#define APIC_ID_OFFSET 0x20  /* Local APIC ID Register */
+#define APIC_SVR_OFFSET 0xF0 /* Spurious Interrupt Vector Register */
+#define APIC_SVR_ENABLE (1 << 8)
 
-static uint32 APIC_BASE_ADDR;
+static volatile uintptr lapic;
 
 int check_apic() {
     uint64 rax, rbx, rcx, rdx;
@@ -53,26 +55,28 @@ void disable_pic() {
 void enable_apic() {
     uint32 eax, edx = 0;
     rdmsr(IA32_APIC_BASE_MSR, &eax, &edx);
-    APIC_BASE_ADDR = eax & 0xfffff0000;
+    lapic = eax & 0xfffff0000;
 
-    if (eax & IA32_APIC_BASE_MSR_ENABLE) {
-        debugf("apic: already enabled\n");
-        return;
+    debugf("[apic] IA32_APIC_BASE_MSR: %x %x\n", edx, eax);
+    debugf("[apic] APIC at: %x\n", lapic);
+    if ((eax & IA32_APIC_BASE_MSR_ENABLE) == 0) {
+        eax = (eax & 0xfffff0000) | IA32_APIC_BASE_MSR_ENABLE;
+        wrmsr(IA32_APIC_BASE_MSR, eax, edx);
     }
-
-    eax = (eax & 0xfffff0000) | IA32_APIC_BASE_MSR_ENABLE;
-    wrmsr(IA32_APIC_BASE_MSR, eax, edx);
 }
 
-void write_apic(uint32 reg, uint32 value) {
-    volatile uint32 *addr = (uint32 *)(APIC_BASE_ADDR + reg);
-    debugf("apic: write %x to %x\n", value, addr);
-    *addr = value;
+uint32 write_apic(uint32 idx, uint32 value) {
+    debugf("[apic] write %x to %x\n", value, lapic + idx);
+    mmio_write32((void *)(lapic + idx), value);
+    volatile uint32 _ =
+        mmio_read32((void *)(lapic + APIC_ID_OFFSET));  // wait for write
+    return _;
 }
 
-uint32 read_apic(uint32 reg) {
-    volatile uint32 *addr = (uint32 *)(APIC_BASE_ADDR + reg);
-    return *addr;
+uint32 read_apic(uint32 idx) {
+    uint32 data = mmio_read32((void *)(lapic + idx));
+    debugf("[apic] read %x from %x\n", data, lapic + idx);
+    return data;
 }
 
 /* 12.4.3 Enabling or Disabling the Local APIC */
@@ -81,14 +85,11 @@ void apic_init() {
         panic("apic: not supported\n");
     }
     if (!check_x2apic()) {
-        debugf("apic: x2apic not supported\n");
+        debugf("[apic] x2apic not supported\n");
     }
 
     disable_pic();
     enable_apic();
-    uint32 svr = read_apic(IA32_APIC_SVR_OFFSET);
-    debugf("apic: svr = %x\n", svr);
-    write_apic(IA32_APIC_SVR_OFFSET,
-               read_apic(IA32_APIC_SVR_OFFSET) | IA32_APIC_SVR_ENABLE | 0xFF);
-    debugf("apic: svr = %x\n", read_apic(IA32_APIC_SVR_OFFSET));
+    write_apic(APIC_SVR_OFFSET,
+               read_apic(APIC_SVR_OFFSET) | APIC_SVR_ENABLE | 0xFF);
 }

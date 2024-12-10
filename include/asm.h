@@ -49,3 +49,13 @@ static inline void rdmsr(uint32 msr, uint32 *lo, uint32 *hi) {
 static inline void wrmsr(uint32 msr, uint32 lo, uint32 hi) {
     asm volatile("wrmsr" ::"a"(lo), "d"(hi), "c"(msr));
 }
+
+static inline uint32 mmio_read32(void *addr) {
+    uint32 data;
+    asm volatile("movl (%1), %k0" : "=r"(data) : "r"(addr) : "memory");
+    return data;
+}
+
+static inline void mmio_write32(void *addr, uint32 data) {
+    asm volatile("movl %k0, (%1)" : : "r"(data), "r"(addr) : "memory");
+}
