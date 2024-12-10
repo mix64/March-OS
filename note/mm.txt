@@ -27,11 +27,27 @@ vaddr_max = 48bit (PML4)
    0 |----------|-------------------------------------------------|--------------|
      | 2MB Page | <- Kernel                                       |              |
 488M |----------|                                                 |              |
-     | NoMapped | Physical Memory (exist, already mapped)         | Kernel Space |
+     | reserved | Physical Memory (exist, already mapped)         | Kernel Space |
 510M |----------|                                                 |              |
      | 2MB      | <- Stack                                        |              |
 512M |----------|-------------------------------------------------|              |
      | 2MB      | Physical Memory (non-exist, but already mapped) |              |
   1T |----------|-------------------------------------------------|--------------|
      |          | Virtual Memory (non-exist, not mapped)          | User Space   |
+256T |----------|-------------------------------------------------|--------------|
+
+
+** After uvm_init()
+   0 |----------|-------------------------------------------------|--------------|
+     | 2MB Page | <- Kernel                                       |              |
+488M |----------|                                                 |              |
+     | reserved | Physical Memory (exist, already mapped)         | Kernel Space |
+510M |----------|                                                 |              |
+     | 2MB      | <- Stack                                        |              |
+512M |----------|-------------------------------------------------|              |
+     | 2MB      | Physical Memory (non-exist, but already mapped) |              |
+  1T |----------|-------------------------------------------------|--------------|
+     | 4KB Page | Switch User Space by PML4[2] (512GB)            | User Space   |
+1.5T |----------|-------------------------------------------------|--------------|
+     |          | Virtual Memory (non-exist, not mapped)          |              |
 256T |----------|-------------------------------------------------|--------------|
