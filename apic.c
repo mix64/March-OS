@@ -1,7 +1,7 @@
+#include <apic.h>
 #include <asm.h>
 #include <mm.h>
 #include <serial.h>
-#include <x86.h>
 
 /*
  SDM Vol.3B
@@ -19,6 +19,7 @@
 #define IA32_APIC_BASE_MSR_ENABLE (1 << 11)
 
 #define APIC_ID_OFFSET 0x20  /* Local APIC ID Register */
+#define APIC_EOI_OFFSET 0xB0 /* EOI Register */
 #define APIC_SVR_OFFSET 0xF0 /* Spurious Interrupt Vector Register */
 #define APIC_SVR_ENABLE (1 << 8)
 
@@ -93,3 +94,5 @@ void apic_init() {
     write_apic(APIC_SVR_OFFSET,
                read_apic(APIC_SVR_OFFSET) | APIC_SVR_ENABLE | 0xFF);
 }
+
+void apic_eoi() { write_apic(APIC_EOI_OFFSET, 0); }

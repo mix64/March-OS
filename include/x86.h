@@ -22,4 +22,3 @@ void idt_init();
 void set_idt_entry(struct gatedesc *idt, uint16 cs, uint64 offset,
                    uint8 is_trap, uint8 dpl);
 void gdt_init();
-void apic_init();
