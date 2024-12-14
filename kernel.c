@@ -1,3 +1,4 @@
+#include <apic.h>
 #include <asm.h>
 #include <boot/info.h>
 #include <mm.h>
