@@ -18,7 +18,7 @@ struct gatedesc {
 #define STS_IG64 0xE  // 64-bit Interrupt Gate
 #define STS_TG64 0xF  // 64-bit Trap Gate
 
+// x86.c
 void idt_init();
-void set_idt_entry(struct gatedesc *idt, uint16 cs, uint64 offset,
-                   uint8 is_trap, uint8 dpl);
-void gdt_init();
+void set_idt_entry(uint8 idx, uint64 offset);
+void restore_idt_entry(uint8 idx);

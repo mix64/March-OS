@@ -8,9 +8,12 @@ extern uint64 vectors[];
 #define SEG_KCODE 0x08
 #define SEG_KDATA 0x10
 
+void idt_entry(struct gatedesc *idt, uint16 cs, uint64 offset, uint8 is_trap,
+               uint8 dpl);
+
 void idt_init() {
     for (int i = 0; i < 256; i++) {
-        set_idt_entry(&idt[i], SEG_KCODE, vectors[i], 0, 0);
+        idt_entry(&idt[i], SEG_KCODE, vectors[i], 0, 0);
     }
     idtr[0] = sizeof(idt) - 1;
     idtr[1] = (uint64)idt;
@@ -20,8 +23,8 @@ void idt_init() {
     asm volatile("lidt (%0)" ::"r"(idtr));
 }
 
-void set_idt_entry(struct gatedesc *idt, uint16 cs, uint64 offset,
-                   uint8 is_trap, uint8 dpl) {
+void idt_entry(struct gatedesc *idt, uint16 cs, uint64 offset, uint8 is_trap,
+               uint8 dpl) {
     idt->off_63_32 = (uint32)(offset >> 32);
     idt->off_31_16 = (uint16)((offset >> 16) & 0xFFFF);
     idt->off_15_0 = (uint16)(offset) & 0xFFFF;
@@ -33,4 +36,12 @@ void set_idt_entry(struct gatedesc *idt, uint16 cs, uint64 offset,
     idt->IST = 0;
     idt->reserved_1 = 0;
     idt->reserved_2 = 0;
+}
+
+void set_idt_entry(uint8 idx, uint64 offset) {
+    idt_entry(&idt[idx], SEG_KCODE, offset, 0, 0);
+}
+
+void restore_idt_entry(uint8 idx) {
+    idt_entry(&idt[idx], SEG_KCODE, vectors[idx], 0, 0);
 }
