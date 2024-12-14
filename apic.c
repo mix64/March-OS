@@ -22,7 +22,7 @@
 #define APIC_SVR_OFFSET 0xF0 /* Spurious Interrupt Vector Register */
 #define APIC_SVR_ENABLE (1 << 8)
 
-static volatile uintptr lapic;
+static uintptr lapic;
 
 int check_apic() {
     uint64 rax, rbx, rcx, rdx;
@@ -60,7 +60,7 @@ void enable_apic() {
     debugf("[apic] IA32_APIC_BASE_MSR: %x %x\n", edx, eax);
     debugf("[apic] APIC at: %x\n", lapic);
     if ((eax & IA32_APIC_BASE_MSR_ENABLE) == 0) {
-        eax = (eax & 0xfffff0000) | IA32_APIC_BASE_MSR_ENABLE;
+        eax |= IA32_APIC_BASE_MSR_ENABLE;
         wrmsr(IA32_APIC_BASE_MSR, eax, edx);
     }
 }
