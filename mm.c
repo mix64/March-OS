@@ -1,8 +1,8 @@
-#include <asm.h>
 #include <common.h>
 #include <mm.h>
 #include <serial.h>
 #include <system.h>
+#include <x86/asm.h>
 
 uintptr *freemap;
 extern char kernel_end[];

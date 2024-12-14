@@ -1,5 +1,5 @@
-#include <asm.h>
 #include <serial.h>
+#include <x86/asm.h>
 
 #define COM1_PORT 0x3f8  // COM1
 

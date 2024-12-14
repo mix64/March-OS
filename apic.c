@@ -1,7 +1,7 @@
 #include <apic.h>
-#include <asm.h>
 #include <mm.h>
 #include <serial.h>
+#include <x86/asm.h>
 
 /*
  SDM Vol.3B

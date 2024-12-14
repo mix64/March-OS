@@ -1,8 +1,8 @@
-#include <asm.h>
 #include <common.h>
 #include <mm.h>
 #include <serial.h>
 #include <types.h>
+#include <x86/asm.h>
 
 static uintptr *pgdir;
 
