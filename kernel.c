@@ -1,9 +1,9 @@
-#include <apic.h>
 #include <boot/info.h>
 #include <mm.h>
 #include <serial.h>
 #include <system.h>
 #include <x86.h>
+#include <x86/apic.h>
 #include <x86/asm.h>
 
 System SYSTEM;

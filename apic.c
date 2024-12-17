@@ -1,6 +1,6 @@
-#include <apic.h>
 #include <mm.h>
 #include <serial.h>
+#include <x86/apic.h>
 #include <x86/asm.h>
 
 /*
