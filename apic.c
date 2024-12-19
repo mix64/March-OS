@@ -18,9 +18,9 @@
 #define IA32_APIC_BASE_MSR_BSP (1 << 8)
 #define IA32_APIC_BASE_MSR_ENABLE (1 << 11)
 
-#define APIC_ID_OFFSET 0x20  /* Local APIC ID Register */
-#define APIC_EOI_OFFSET 0xB0 /* EOI Register */
-#define APIC_SVR_OFFSET 0xF0 /* Spurious Interrupt Vector Register */
+#define APIC_ID 0x20  /* Local APIC ID Register */
+#define APIC_EOI 0xB0 /* EOI Register */
+#define APIC_SVR 0xF0 /* Spurious Interrupt Vector Register */
 #define APIC_SVR_ENABLE (1 << 8)
 
 volatile static uintptr lapic;
@@ -70,7 +70,7 @@ uint32 write_apic(uint32 idx, uint32 value) {
     debugf("[apic] write %x to %x\n", value, lapic + idx);
     mmio_write32((void *)(lapic + idx), value);
     volatile uint32 _ =
-        mmio_read32((void *)(lapic + APIC_ID_OFFSET));  // wait for write
+        mmio_read32((void *)(lapic + APIC_ID));  // wait for write
     return _;
 }
 
@@ -91,8 +91,8 @@ void apic_init() {
 
     disable_pic();
     enable_apic();
-    write_apic(APIC_SVR_OFFSET,
-               read_apic(APIC_SVR_OFFSET) | APIC_SVR_ENABLE | 0xFF);
+    write_apic(APIC_SVR, read_apic(APIC_SVR) | APIC_SVR_ENABLE | 0xFF);
+    apic_timer_setup();
 }
 
-void apic_eoi() { write_apic(APIC_EOI_OFFSET, 0); }
+void apic_eoi() { write_apic(APIC_EOI, 0); }
