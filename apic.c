@@ -23,7 +23,7 @@
 #define APIC_SVR_OFFSET 0xF0 /* Spurious Interrupt Vector Register */
 #define APIC_SVR_ENABLE (1 << 8)
 
-static uintptr lapic;
+volatile static uintptr lapic;
 
 int check_apic() {
     uint64 rax, rbx, rcx, rdx;
