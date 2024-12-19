@@ -1,5 +1,9 @@
 #include <types.h>
 
+#define T_IRQ0 32
+#define IRQ_TIMER 0
+#define IRQ_ERROR 19
+
 struct trapframe {
     // registers as pushed by vectors.S
     uint64 r15;
