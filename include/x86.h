@@ -20,5 +20,3 @@ struct gatedesc {
 
 // x86.c
 void idt_init();
-void set_idt_entry(uint8 idx, uint64 offset);
-void restore_idt_entry(uint8 idx);
