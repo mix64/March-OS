@@ -5,3 +5,4 @@ root/
 *.bin
 *.efi
 *.pdf
+*.log
