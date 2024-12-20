@@ -2,17 +2,17 @@
 #include <types.h>
 
 struct gatedesc {
-    uint16 off_15_0;        // low 16 bits of offset in segment
-    uint16 sel;             // code segment selector
-    uint16 IST : 3;         // Interrupt Stack Table
-    uint16 reserved_2 : 5;  // reserved
-    uint16 type : 4;        // type(STS_{IG64,TG64})
-    uint16 s : 1;           // must be 0 (system)
-    uint16 dpl : 2;         // Descriptor Privilege Level
-    uint16 p : 1;           // Present
-    uint16 off_31_16;       // middle 16 bits of offset in segment
-    uint32 off_63_32;       // high 32 bits of offset in segment
-    uint32 reserved_1;      // reserved
+    uint64 off_15_0 : 16;    // low 16 bits of offset in segment
+    uint64 sel : 16;         // code segment selector
+    uint64 IST : 3;          // Interrupt Stack Table
+    uint64 reserved_2 : 5;   // reserved
+    uint64 type : 4;         // type(STS_{IG64,TG64})
+    uint64 s : 1;            // must be 0 (system)
+    uint64 dpl : 2;          // Descriptor Privilege Level
+    uint64 p : 1;            // Present
+    uint64 off_31_16 : 16;   // middle 16 bits of offset in segment
+    uint64 off_63_32 : 32;   // high 32 bits of offset in segment
+    uint64 reserved_1 : 32;  // reserved
 };
 
 #define STS_IG64 0xE  // 64-bit Interrupt Gate
