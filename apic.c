@@ -117,7 +117,7 @@ void apic_init() {
 
     disable_pic();
     enable_apic();
-    write_apic(APIC_SVR, read_apic(APIC_SVR) | APIC_SVR_ENABLE | 0xFF);
+    write_apic(APIC_SVR, APIC_SVR_ENABLE | (T_IRQ0 + IRQ_SPURIOUS));
 
     // Setup timer
     write_apic(APIC_TIMER_DCR, APIC_TIMER_DCR_DIV1);

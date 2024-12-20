@@ -3,6 +3,7 @@
 #define T_IRQ0 32
 #define IRQ_TIMER 0
 #define IRQ_ERROR 19
+#define IRQ_SPURIOUS 31
 
 struct trapframe {
     // registers as pushed by vectors.S
