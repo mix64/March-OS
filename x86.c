@@ -1,7 +1,9 @@
+#include <mm.h>
 #include <serial.h>
 #include <x86.h>
 
 struct gatedesc idt[256];
+struct taskstate ts;
 static uint16 idtr[5];
 extern uint64 vectors[];
 extern struct seg32desc gdt[GDT_SEG_COUNT];
@@ -20,6 +22,24 @@ void idt_init() {
     idtr[3] = (uint64)idt >> 32;
     idtr[4] = (uint64)idt >> 48;
     asm volatile("lidt (%0)" ::"r"(idtr));
+
+    debugf("[x86] init Task State Segment\n");
+    ts.rsp0_lo = (uint32)kalloc() + PAGE_SIZE;
+    // ts.ist1_lo = (uint32)kalloc() + PAGE_SIZE;  // only use IST1
+    ts.iomb = (uint16)0xFFFF;
+    struct seg64desc *tss = (struct seg64desc *)&gdt[GDT_SEG_TSS];
+    tss->lim_15_0 = (uint16)(sizeof(ts) - 1);
+    tss->base_15_0 = (uint16)(((uint64)&ts) & 0xFFFF);
+    tss->base_23_16 = (uint8)(((uint64)&ts >> 16) & 0xFF);
+    tss->type = 0x9;  // 64-bit TSS (Available)
+    tss->s = 0;       // must 0 in TSS
+    tss->dpl = 0;     // 0 for kernel
+    tss->p = 1;       // Present
+    tss->lim_19_16 = (uint8)((sizeof(ts) - 1) >> 16);
+    tss->flags = 0;
+    tss->base_31_24 = (uint8)(((uint64)&ts >> 24) & 0xFF);
+    tss->base_63_32 = (uint32)((uint64)&ts >> 32);
+    asm volatile("ltr %0" ::"r"((uint16)GDT_TSS));
 }
 
 void idt_entry(struct gatedesc *idt, uint16 cs, uint64 offset, uint8 is_trap,

@@ -1,4 +1,5 @@
 #pragma once
+#include <common.h>
 #include <types.h>
 
 #define PAGE_SIZE KiB(4ULL)

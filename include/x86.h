@@ -64,5 +64,48 @@ struct gatedesc {
 #define STS_IG64 0xE  // 64-bit Interrupt Gate
 #define STS_TG64 0xF  // 64-bit Trap Gate
 
+struct taskstate {
+    uint64 reserved_0 : 32;
+
+    // The Stack Pointers used to load the stack when a privilege level change
+    // occurs from a lower privilege level to a higher one.
+    uint64 rsp0_lo : 32;
+    uint64 rsp0_hi : 32;
+    uint64 rsp1_lo : 32;
+    uint64 rsp1_hi : 32;
+    uint64 rsp2_lo : 32;
+    uint64 rsp2_hi : 32;
+
+    uint64 reserved_1 : 32;
+    uint64 reserved_2 : 32;
+
+    // Interrupt Stack Table.
+    // The Stack Pointers used to load the stack when an entry in the IDT has an
+    // IST value other than 0.
+    // In our case, we will not use this feature.
+    uint64 ist1_lo : 32;
+    uint64 ist1_hi : 32;
+    uint64 ist2_lo : 32;
+    uint64 ist2_hi : 32;
+    uint64 ist3_lo : 32;
+    uint64 ist3_hi : 32;
+    uint64 ist4_lo : 32;
+    uint64 ist4_hi : 32;
+    uint64 ist5_lo : 32;
+    uint64 ist5_hi : 32;
+    uint64 ist6_lo : 32;
+    uint64 ist6_hi : 32;
+    uint64 ist7_lo : 32;
+    uint64 ist7_hi : 32;
+
+    uint64 reserved_3 : 32;
+    uint64 reserved_4 : 32;
+    uint64 reserved_5 : 16;
+
+    // I/O Map Base Address Field.
+    // 16-bit offset from the base of the TSS to the I/O Permission Bit Map.
+    uint64 iomb : 16;
+};
+
 // x86.c
 void idt_init();
