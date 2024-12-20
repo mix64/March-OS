@@ -4,16 +4,15 @@
 struct gatedesc idt[256];
 static uint16 idtr[5];
 extern uint64 vectors[];
-
-#define SEG_KCODE 0x08
-#define SEG_KDATA 0x10
+extern struct seg32desc gdt[GDT_SEG_COUNT];
 
 void idt_entry(struct gatedesc *idt, uint16 cs, uint64 offset, uint8 is_trap,
                uint8 dpl);
 
 void idt_init() {
+    debugf("[x86] init Interrupt Descriptor Table\n");
     for (int i = 0; i < 256; i++) {
-        idt_entry(&idt[i], SEG_KCODE, vectors[i], 0, 0);
+        idt_entry(&idt[i], GDT_KCODE, vectors[i], 0, 0);
     }
     idtr[0] = sizeof(idt) - 1;
     idtr[1] = (uint64)idt;
@@ -39,9 +38,9 @@ void idt_entry(struct gatedesc *idt, uint16 cs, uint64 offset, uint8 is_trap,
 }
 
 void set_idt_entry(uint8 idx, uint64 offset) {
-    idt_entry(&idt[idx], SEG_KCODE, offset, 0, 0);
+    idt_entry(&idt[idx], GDT_KCODE, offset, 0, 0);
 }
 
 void restore_idt_entry(uint8 idx) {
-    idt_entry(&idt[idx], SEG_KCODE, vectors[idx], 0, 0);
+    idt_entry(&idt[idx], GDT_KCODE, vectors[idx], 0, 0);
 }
