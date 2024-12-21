@@ -6,7 +6,7 @@ struct gatedesc idt[256];
 struct taskstate ts;
 static uint16 idtr[5];
 extern uint64 vectors[];
-extern struct seg32desc gdt[GDT_SEG_COUNT];
+extern struct seg32desc gdt[];
 
 void idt_entry(struct gatedesc *idt, uint16 cs, uint64 offset, uint8 is_trap,
                uint8 dpl);
@@ -40,6 +40,8 @@ void idt_init() {
     tss->base_31_24 = (uint8)(((uint64)&ts >> 24) & 0xFF);
     tss->base_63_32 = (uint32)((uint64)&ts >> 32);
     asm volatile("ltr %0" ::"r"((uint16)GDT_TSS));
+
+    debugf("[x86] init IDT/TSS Done.\n");
 }
 
 void idt_entry(struct gatedesc *idt, uint16 cs, uint64 offset, uint8 is_trap,

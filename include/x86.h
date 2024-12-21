@@ -29,7 +29,7 @@ struct seg32desc {
     uint64 p : 1;
     uint64 lim_19_16 : 4;
     uint64 flags : 4;
-    uint64 base_31_24;
+    uint64 base_31_24 : 8;
 };
 
 struct seg64desc {
