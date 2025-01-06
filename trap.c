@@ -1,14 +1,29 @@
 #include <serial.h>
 #include <trap.h>
+#include <x86/apic.h>
 
-void dump(struct trapframe *tf);
+static uint64 ticks;  // 100Hz Timer Counter
+
+void dump_tf(struct trapframe *tf);
 
 void trap(struct trapframe *tf) {
-    dump(tf);
+    switch (tf->trapno) {
+        case T_IRQ0 + IRQ_TIMER:
+            ticks++;
+            apic_eoi();
+            if (ticks % 100 == 0) {
+                kprintf("ticks = %d\n", ticks);
+            }
+            break;
+        default:
+            kprintf("unknown interrupt\n");
+            dump_tf(tf);
+            break;
+    }
     return;
 }
 
-void dump(struct trapframe *tf) {
+void dump_tf(struct trapframe *tf) {
     kprintf("trapframe:\n");
     kprintf("    trapno = %x\n", tf->trapno);
     kprintf("    r15 = %x\n", tf->r15);

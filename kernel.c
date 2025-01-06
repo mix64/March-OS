@@ -14,7 +14,7 @@ void kernel_main() {
     vm_init();
     idt_init();
     apic_init();
-    asm volatile("int $0x3");
+    sti();
     while (1);
 }
 
