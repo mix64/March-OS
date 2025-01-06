@@ -29,10 +29,10 @@ uint64 load_kernel(EFI_FILE_PROTOCOL *root, uint16 *filename) {
         }
         status = file->SetPosition(file, phdr.p_offset);
         assert(status, L"kernel->SetPosition(p_offset)");
-        put_param(L"Load Segment", i);
-        put_param(L"p_paddr", phdr.p_paddr);
-        put_param(L"p_filesz", phdr.p_filesz);
-        put_param(L"p_memsz", phdr.p_memsz);
+        put_param(L"[uefi]   Load Segment", i);
+        put_param(L"[uefi]     p_paddr", phdr.p_paddr);
+        put_param(L"[uefi]     p_filesz", phdr.p_filesz);
+        put_param(L"[uefi]     p_memsz", phdr.p_memsz);
         status = file->Read(file, &phdr.p_filesz, (void *)phdr.p_paddr);
         assert(status, L"kernel->Read(Segment)");
         if (phdr.p_filesz < phdr.p_memsz) {
@@ -53,20 +53,15 @@ void efi_main(void *ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
         panic(L"No volume contains kernel.bin.");
     }
     uint64 kernel_entry_addr = load_kernel(root, L"kernel.bin");
-    put_param(L"Kernel Entry", kernel_entry_addr);
+    put_param(L"[uefi] Kernel Entry", kernel_entry_addr);
 
     // Setup FrameBuffer
     boot_info.screen.base = (uintptr)GOP->Mode->FrameBufferBase;
     boot_info.screen.size = GOP->Mode->FrameBufferSize;
     boot_info.screen.hr = GOP->Mode->Info->HorizontalResolution;
     boot_info.screen.vr = GOP->Mode->Info->VerticalResolution;
-    put_param(L"Screen Base", (uint64)boot_info.screen.base);
-    put_param(L"Screen Size", boot_info.screen.size);
-    put_param(L"Screen HR", boot_info.screen.hr);
-    put_param(L"Screen VR", boot_info.screen.vr);
-
     boot_info.memtotal = get_total_memory_size();
-    put_param(L"Total Memory Size", boot_info.memtotal);
+    put_param(L"[uefi] Total Memory Size", boot_info.memtotal);
 
     exit_boot_services(ImageHandle);
 

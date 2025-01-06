@@ -32,7 +32,7 @@ EFI_FILE_PROTOCOL *search_volume_contains_file(uint16 *filename) {
                                                   &sfs_handle_count,
                                                   (void ***)&sfs_handles);
     assert(status, L"LocateHandleBuffer");
-    put_param(L"Number of volumes", sfs_handle_count);
+    put_param(L"[uefi] Number of volumes", sfs_handle_count);
 
     EFI_FILE_PROTOCOL *root;
     for (uint64 i = 0; i < sfs_handle_count; i++) {
@@ -53,7 +53,7 @@ EFI_FILE_PROTOCOL *search_volume_contains_file(uint16 *filename) {
         EFI_FILE_PROTOCOL *_file;
         status = root->Open(root, &_file, filename, EFI_FILE_MODE_READ, 0);
         if (!status) {
-            put_param(L"Find Kernel in Volume", i);
+            put_param(L"[uefi] Find Kernel in Volume", i);
             return root;
         }
     }
