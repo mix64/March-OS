@@ -24,7 +24,7 @@ void idt_init() {
     asm volatile("lidt (%0)" ::"r"(idtr));
 
     debugf("[x86] init Task State Segment\n");
-    ts.rsp0_lo = (uint32)kalloc() + PAGE_SIZE;
+    ts.rsp0_lo = (uint64)kalloc() + PAGE_SIZE;
     // ts.ist1_lo = (uint32)kalloc() + PAGE_SIZE;  // only use IST1
     ts.iomb = (uint16)0xFFFF;
     struct seg64desc *tss = (struct seg64desc *)&gdt[GDT_SEG_TSS];
