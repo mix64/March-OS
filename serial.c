@@ -91,6 +91,9 @@ void _kprintf(char *fmt, uint8 argc, uintptr *argv) {
                     kprint(s);
                 }
                 break;
+            case 'X':
+                printn((uint64)argv[arg_index++], 16);
+                break;
             default:
                 kprint("Unknown format ");
                 putchar(c);
