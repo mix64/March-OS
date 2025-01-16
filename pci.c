@@ -147,6 +147,7 @@ void pci_dump(struct pci_device *pcidev) {
     debugf("        Max Latency: %x\n", pcidev->max_latency);
 }
 
+// https://admin.pci-ids.ucw.cz/read/PD/
 void pci_parse_class(struct pci_device_header *header) {
     uint8 class_id = header->class_id;
     uint8 subclass_id = header->subclass_id;
