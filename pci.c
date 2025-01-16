@@ -95,6 +95,23 @@ void pci_scan() {
             } else {
                 panic("PCI Device limit reached\n");
             }
+
+            if (pci_devices[idx - 1].header.header_type & 0x80) {
+                for (uint32 func = 1; func < 8; func++) {
+                    if (pci_config_read16(bus, slot, func, 0) == 0xFFFF) {
+                        continue;
+                    }
+                    pci_read_header(bus, slot, func, &pci_devices[idx].header);
+                    pci_read_table(&pci_devices[idx]);
+                    pci_parse_class(&pci_devices[idx].header);
+                    pci_dump(&pci_devices[idx]);
+                    if (idx < PCI_DEV_MAX) {
+                        idx++;
+                    } else {
+                        panic("PCI Device limit reached\n");
+                    }
+                }
+            }
         }
     }
 }
@@ -135,7 +152,7 @@ void pci_parse_class(struct pci_device_header *header) {
     uint8 subclass_id = header->subclass_id;
     uint8 prog_if = header->prog_if;
 
-    kprintf("[PCI] ");
+    kprintf("[PCI %X:%X.%X] ", header->bus, header->slot, header->func);
     switch (class_id) {
         case PCI_CLASS_CODE_UNCLASSIFIED:
             kprintf("Unclassified: ");
