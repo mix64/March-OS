@@ -13,7 +13,11 @@ endif
 CFLAGS += -D__DEBUG__
 
 run: build
-	qemu-system-x86_64 -d cpu_reset -D ./debug.log -bios /usr/share/ovmf/OVMF.fd -m 512M -chardev stdio,mux=on,id=com1 -serial chardev:com1 -hda fat:rw:root
+	qemu-system-x86_64 -d cpu_reset -D ./debug.log \
+	  -bios /usr/share/ovmf/OVMF.fd -m 512M \
+	  -chardev stdio,mux=on,id=com1 -serial chardev:com1 \
+	  -device ich9-ahci,id=ahci \
+	  -hda fat:rw:root
 
 build: boot.efi kernel.bin
 
