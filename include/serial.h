@@ -34,6 +34,7 @@ void _kprintf(char *fmt, uint8 argc, uintptr *argv);
 
 #define panic(fmt, ...)              \
     do {                             \
+        kprintf("panic: ");          \
         kprintf(fmt, ##__VA_ARGS__); \
         while (1);                   \
     } while (0)
