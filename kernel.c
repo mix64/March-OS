@@ -13,6 +13,7 @@ void kernel_main() {
     kprintf("Hello, Kernel!\n");
     mm_init();
     vm_init();
+    slab_init();
     idt_init();
     apic_init();
     pci_scan();
