@@ -5,6 +5,7 @@
 struct slab64_info {
     uintptr addr;
     uint64 bitmap;
+    struct slab64_info *prev;
     struct slab64_info *next;
 };
 
@@ -16,6 +17,7 @@ void slab_init() {
     slab64 = (struct slab64_info *)kalloc();
     slab64->addr = (uintptr)slab64;
     slab64->bitmap = 0b1;
+    slab64->prev = NULL;
     slab64->next = NULL;
 
 #ifdef __DEBUG__
@@ -49,6 +51,7 @@ void *kmalloc(uint64 size) {
         slab64->addr = (uintptr)slab64;
         slab64->bitmap = 0b11;
         slab64->next = next;
+        next->prev = slab64;
 
         return (void *)(slab64->addr + 64);
     }
@@ -89,6 +92,7 @@ void dump_slab64() {
         debugf("Dump slab64: %x\n", entry);
         debugf("             addr %x\n", entry->addr);
         debugf("             bitmap %x\n", entry->bitmap);
+        debugf("             prev %x\n", entry->prev);
         debugf("             next %x\n", entry->next);
         entry = entry->next;
     }
