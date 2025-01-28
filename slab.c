@@ -2,6 +2,7 @@
 #include <serial.h>
 #include <types.h>
 
+#define __SLAB_DEBUG__
 struct slab64_info {
     uint64 bitmap;
     struct slab64_info *prev;
@@ -18,16 +19,22 @@ void slab_init() {
     slab64->prev = NULL;
     slab64->next = NULL;
 
-#ifdef __DEBUG__
+#ifdef __SLAB_DEBUG__
     void *addr[128];
-    for (int i = 0; i < 128; i++) {
+    for (int i = 0; i < 64; i++) {
         addr[i] = kmalloc(64);
     }
-    debugf("kmalloc(64) test\n");
+    debugf("[mm] kmalloc(64) test\n");
     dump_slab64();
-    debugf("kmfree(64) test\n");
-    for (int i = 0; i < 128; i++) {
+    debugf("[mm] kmfree(64) test\n");
+    for (int i = 0; i < 64; i += 2) {
         kmfree(addr[i]);
+    }
+    dump_slab64();
+    debugf("kalloc() %x\n", kalloc());
+    debugf("[mm] kmalloc(64) test2\n");
+    for (int i = 0; i < 128; i++) {
+        addr[i] = kmalloc(64);
     }
     dump_slab64();
 #endif
