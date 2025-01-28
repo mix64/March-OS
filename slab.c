@@ -3,7 +3,6 @@
 #include <types.h>
 
 struct slab64_info {
-    uintptr addr;
     uint64 bitmap;
     struct slab64_info *prev;
     struct slab64_info *next;
@@ -15,7 +14,6 @@ void dump_slab64();
 
 void slab_init() {
     slab64 = (struct slab64_info *)kalloc();
-    slab64->addr = (uintptr)slab64;
     slab64->bitmap = 0b1;
     slab64->prev = NULL;
     slab64->next = NULL;
@@ -37,23 +35,30 @@ void slab_init() {
 
 void *kmalloc(uint64 size) {
     if (size <= 64) {
-        if (slab64 == NULL || slab64->addr == 0) {
-            panic("kmalloc: slab64");
+        if (slab64 == NULL) {
+            panic("kmalloc: slab64 is NULL\n");
         }
-        for (int i = 1; i < 64; i++) {
-            if ((slab64->bitmap & (1 << i)) == 0) {
-                slab64->bitmap |= (1 << i);
-                return (void *)(slab64->addr + i * 64);
-            }
-        }
-        struct slab64_info *next = slab64;
-        slab64 = (struct slab64_info *)kalloc();
-        slab64->addr = (uintptr)slab64;
-        slab64->bitmap = 0b11;
-        slab64->next = next;
-        next->prev = slab64;
 
-        return (void *)(slab64->addr + 64);
+        // Find free space in slab64
+        struct slab64_info *entry = slab64;
+        while (entry != NULL) {
+            for (int i = 1; i < 64; i++) {
+                if ((entry->bitmap & (1 << i)) == 0) {
+                    entry->bitmap |= (1 << i);
+                    return (void *)((uintptr)(entry) + i * 64);
+                }
+            }
+            entry = entry->next;
+        }
+
+        // No free space, allocate new slab64
+        struct slab64_info *new = (struct slab64_info *)kalloc();
+        new->bitmap = 0b11;
+        new->next = slab64;
+        slab64->prev = new;
+        slab64 = new;
+
+        return (void *)((uintptr)(slab64) + 64);
     }
     // TODO: Implement kmalloc for other size
     return NULL;
@@ -61,10 +66,7 @@ void *kmalloc(uint64 size) {
 
 void kmfree(void *addr_p) {
     if (addr_p == NULL) {
-        panic("kmfree: addr == NULL\n");
-    }
-    if (slab64->addr == 0) {
-        panic("kmfree: slab64->addr == 0\n");
+        panic("kmfree: addr is NULL\n");
     }
 
     uintptr addr = (uintptr)addr_p;
@@ -72,13 +74,31 @@ void kmfree(void *addr_p) {
     struct slab64_info *entry = slab64;
 
     while (entry != NULL) {
-        if (entry->addr == base) {
+        if ((uintptr)entry == base) {
             int idx = (addr - base) / 64;
             if (addr % 64 != 0 || idx < 0 || idx > 63) {
                 panic("kmfree: invalid addr %x\n", addr);
             }
             entry->bitmap &= ~(1 << idx);
-            // TODO: free physical page if all slots are free
+            if (entry->bitmap == 0b1) {
+                if (entry->prev != NULL) {
+                    entry->prev->next = entry->next;
+                }
+                if (entry->next != NULL) {
+                    entry->next->prev = entry->prev;
+                }
+                // entry is head
+                if (entry == slab64) {
+                    // but not the only one
+                    if (entry->next != NULL) {
+                        slab64 = entry->next;
+                    } else {
+                        // the only one, not free
+                        return;
+                    }
+                }
+                kfree((void *)entry);
+            }
             return;
         }
         entry = entry->next;
@@ -90,7 +110,6 @@ void dump_slab64() {
     struct slab64_info *entry = slab64;
     while (entry != NULL) {
         debugf("Dump slab64: %x\n", entry);
-        debugf("             addr %x\n", entry->addr);
         debugf("             bitmap %x\n", entry->bitmap);
         debugf("             prev %x\n", entry->prev);
         debugf("             next %x\n", entry->next);
