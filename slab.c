@@ -50,8 +50,8 @@ void *kmalloc(uint64 size) {
         struct slab64_info *entry = slab64;
         while (entry != NULL) {
             for (int i = 1; i < 64; i++) {
-                if ((entry->bitmap & (1 << i)) == 0) {
-                    entry->bitmap |= (1 << i);
+                if ((entry->bitmap & (1ULL << i)) == 0) {
+                    entry->bitmap |= (1ULL << i);
                     return (void *)((uintptr)(entry) + i * 64);
                 }
             }
@@ -86,7 +86,7 @@ void kmfree(void *addr_p) {
             if (addr % 64 != 0 || idx < 0 || idx > 63) {
                 panic("kmfree: invalid addr %x\n", addr);
             }
-            entry->bitmap &= ~(1 << idx);
+            entry->bitmap &= ~(1ULL << idx);
             if (entry->bitmap == 0b1) {
                 if (entry->prev != NULL) {
                     entry->prev->next = entry->next;
