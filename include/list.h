@@ -8,3 +8,4 @@ typedef struct list {
 } list_t;
 
 void list_push(list_t *list, void *node);
+void list_remove(list_t *list, void *node);

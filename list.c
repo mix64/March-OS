@@ -11,3 +11,18 @@ void list_push(list_t *list, void *node) {
     new->next = NULL;
     last->next = new;
 }
+
+void list_remove(list_t *list, void *node) {
+    for (list_t *entry = list; entry != NULL; entry = entry->next) {
+        if (entry->node == node) {
+            if (entry->prev != NULL) {
+                entry->prev->next = entry->next;
+            }
+            if (entry->next != NULL) {
+                entry->next->prev = entry->prev;
+            }
+            kmfree(entry);
+            return;
+        }
+    }
+}
