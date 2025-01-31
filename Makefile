@@ -12,13 +12,13 @@ endif
 
 CFLAGS += -D__DEBUG__
 
-SUBDIR := mm
+SUBDIR := drivers mm
 
 run: build
 	qemu-system-x86_64 -d cpu_reset -D ./debug.log \
 	  -bios /usr/share/ovmf/OVMF.fd -m 512M \
 	  -chardev stdio,mux=on,id=com1 -serial chardev:com1 \
-	  -hda fat:rw:root
+	  -hda fat:rw:root | tee ./qemu.log
 
 build: boot.efi kernel.bin
 
@@ -37,7 +37,7 @@ kernel.bin: apic.o entry.o kernel.o serial.o pm.o pci.o vectors.o trap.o vm.o x8
 	$(CC) $(CFLAGS) -Wa,--noexecstack -c $<
 
 $(SUBDIR:=.o):
-	make -C $(SUBDIR)
+	make -C $(@:.o=)
 
 clean:
 	-rm -f root/EFI/BOOT/BOOTX64.EFI root/kernel.bin
