@@ -27,8 +27,8 @@ void *kmalloc(uint64 size) {
         }
         // No free space, allocate new slab
         // 1st sector used by SLAB struct
-        SLAB *last;
-        for (last = &slabs[SLAB_64]; last->next != NULL; last = last->next);
+        SLAB *last = &slabs[SLAB_64];
+        for (; last->next != NULL; last = last->next);
         SLAB *new = (SLAB *)kalloc();
         new->address = (uintptr) new;
         new->bitmap = 0b11;
@@ -95,28 +95,41 @@ void kmfree(void *addr_p) {
 
     uintptr addr = (uintptr)addr_p;
     uintptr base = ROUNDDOWN(addr, PAGE_SIZE);
-    SLAB *entry = &slabs[SLAB_64];
+    SLAB *entry, *prev;
+    uint64 size;
 
-    while (entry != NULL) {
-        if (entry->address == base) {
-            int idx = (addr - base) / 64;
-            if (addr % 64 != 0 || idx < 0 || idx > 63) {
-                panic("kmfree: invalid addr %x\n", addr);
+    // Find entry
+    for (int i = 0; i < SLAB_NUM; i++) {
+        entry = &slabs[i];
+        prev = NULL;
+        while (entry != NULL) {
+            if (entry->address == base) {
+                size = SLAB_MIN_SIZE << i;
+                goto found_entry;
             }
-            entry->bitmap &= ~(1ULL << idx);
-            if (entry->bitmap == 0b1 && entry != &slabs[SLAB_64]) {
-                SLAB *prev = &slabs[SLAB_64];
-                while (prev->next != entry) {
-                    prev = prev->next;
-                }
-                prev->next = entry->next;
-                kfree((void *)entry);
-            }
-            return;
+            prev = entry;
+            entry = entry->next;
         }
-        entry = entry->next;
     }
-    panic("kmfree: slab addr %x not found\n", addr);
+
+found_entry:
+    if (entry == NULL) {
+        panic("kmfree: slab addr %x not found\n", addr);
+    }
+
+    // Free slab sector
+    int idx = (addr - base) / size;
+    if (addr % size != 0 || idx < 0 || idx >= size) {
+        panic("kmfree: invalid addr %x\n", addr);
+    }
+    entry->bitmap &= ~(1ULL << idx);
+
+    // Free slab if all sectors are free
+    if ((entry->bitmap == 0 && prev != NULL) ||
+        (entry->bitmap == 0b1 && size == SLAB_MIN_SIZE && prev != NULL)) {
+        prev->next = entry->next;
+        kfree((void *)entry);
+    }
 }
 
 void slab_tests() {
@@ -124,7 +137,7 @@ void slab_tests() {
 
     void *addr[65];
     void *addr2[64];
-    SLAB *head = &slabs[SLAB_64];
+    SLAB *slab64 = &slabs[SLAB_64];
 
     for (int i = 0; i < 65; i++) {
         addr[i] = kmalloc(64);
@@ -133,10 +146,10 @@ void slab_tests() {
         [0] bitmap:0bFFFFFFFF_FFFFFFFF, next->[1]
         [1] bitmap:0b11, next->null
     */
-    if (head->bitmap != 0xFFFFFFFFFFFFFFFF || head->next == NULL) {
+    if (slab64->bitmap != 0xFFFFFFFFFFFFFFFF || slab64->next == NULL) {
         goto failed;
     }
-    if (head->next->bitmap != 0b11 || head->next->next != NULL) {
+    if (slab64->next->bitmap != 0b11 || slab64->next->next != NULL) {
         goto failed;
     }
     debugf("       pass test1\n");
@@ -147,7 +160,7 @@ void slab_tests() {
     /* expected:
         [0] bitmap:0xAAAAAAAA_AAAAAAAA, next->null
     */
-    if (head->bitmap != 0xAAAAAAAAAAAAAAAA || head->next != NULL) {
+    if (slab64->bitmap != 0xAAAAAAAAAAAAAAAA || slab64->next != NULL) {
         goto failed;
     }
     debugf("       pass test2\n");
@@ -159,10 +172,10 @@ void slab_tests() {
         [0] bitmap:0xFFFFFFFF_FFFFFFFF, next->[1]
         [1] bitmap:0x00000001_FFFFFFFF, next->null
     */
-    if (head->bitmap != 0xFFFFFFFFFFFFFFFF || head->next == NULL) {
+    if (slab64->bitmap != 0xFFFFFFFFFFFFFFFF || slab64->next == NULL) {
         goto failed;
     }
-    if (head->next->bitmap != 0x1FFFFFFFF || head->next->next != NULL) {
+    if (slab64->next->bitmap != 0x1FFFFFFFF || slab64->next->next != NULL) {
         goto failed;
     }
     debugf("       pass test3\n");
@@ -176,7 +189,7 @@ void slab_tests() {
     /* expected:
         [0] bitmap:0, next->null, prev->null
     */
-    if (head->bitmap != 0 || head->next != NULL) {
+    if (slab64->bitmap != 0 || slab64->next != NULL) {
         goto failed;
     }
     debugf("       pass test4\n");
@@ -184,12 +197,12 @@ void slab_tests() {
     return;
 
 failed:
-    while (head != NULL) {
-        debugf("Dump slab64: %x\n", head);
-        debugf("             address %x\n", head->address);
-        debugf("             bitmap %x\n", head->bitmap);
-        debugf("             next %x\n", head->next);
-        head = head->next;
+    while (slab64 != NULL) {
+        debugf("Dump slab64: %x\n", slab64);
+        debugf("             address %x\n", slab64->address);
+        debugf("             bitmap %x\n", slab64->bitmap);
+        debugf("             next %x\n", slab64->next);
+        slab64 = slab64->next;
     }
     panic("slab_tests failed\n");
 }
