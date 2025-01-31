@@ -26,7 +26,7 @@ boot.efi:
 	make -C boot
 	mv boot/boot.efi root/EFI/BOOT/BOOTX64.EFI
 
-kernel.bin: apic.o entry.o kernel.o serial.o mm.o pci.o vectors.o trap.o vm.o x86.o slab.o
+kernel.bin: apic.o entry.o kernel.o serial.o pm.o pci.o vectors.o trap.o vm.o x86.o slab.o
 	$(LD) -T kernel.ls -o root/kernel.bin $^
 
 %.o: %.c
