@@ -26,3 +26,8 @@ void kfree(void *addr);
 void vm_init();
 pte_t *walk_pgdir(uintptr va, bool create, bool large);
 void setflag(pte_t *pte, uint64 flag);
+
+// slab.c
+void slab_init();
+void *kmalloc(uint64 size);
+void kmfree(void *addr);

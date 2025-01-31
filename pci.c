@@ -1,6 +1,6 @@
 #include <kernel.h>
 #include <list.h>
-#include <mm/slab.h>
+#include <mm.h>
 #include <pci.h>
 #include <x86/asm.h>
 

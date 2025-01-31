@@ -1,4 +1,4 @@
-#include <serial.h>
+#include <kernel.h>
 #include <trap.h>
 #include <x86/apic.h>
 

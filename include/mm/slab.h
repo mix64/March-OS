@@ -19,7 +19,3 @@ typedef struct SLAB {
     uint64 bitmap;
     struct SLAB *next;
 } SLAB;
-
-void *kmalloc(uint64 size);
-void kmfree(void *addr);
-void slab_init();

@@ -1,5 +1,5 @@
 #include <list.h>
-#include <mm/slab.h>
+#include <mm.h>
 
 void list_push(list_t *list, void *node) {
     list_t *last = list;
