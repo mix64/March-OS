@@ -1,3 +1,5 @@
+#include <list.h>
+#include <mm/slab.h>
 #include <pci.h>
 #include <serial.h>
 #include <types.h>
@@ -8,8 +10,7 @@
 
 #define PCI_CONFIG_DATA 0xCFC
 
-#define PCI_DEV_MAX 32
-static struct pci_device pci_devices[PCI_DEV_MAX];
+static list_t pci_devices;
 
 void pci_parse_class(struct pci_device_header *header);
 void pci_dump(struct pci_device *pcidev);
@@ -79,37 +80,33 @@ void pci_read_table(struct pci_device *pcidev) {
 }
 
 void pci_scan() {
-    int idx = 0;
     for (uint32 bus = 0; bus < 256; bus++) {
         for (uint32 slot = 0; slot < 32; slot++) {
             if (pci_config_read16(bus, slot, 0, 0) == 0xFFFF) {
                 continue;
             }
-            pci_read_header(bus, slot, 0, &pci_devices[idx].header);
-            pci_read_table(&pci_devices[idx]);
-            pci_parse_class(&pci_devices[idx].header);
-            pci_dump(&pci_devices[idx]);
+            struct pci_device *pcidev =
+                (struct pci_device *)kmalloc(sizeof(struct pci_device));
+            list_push(&pci_devices, pcidev);
 
-            if (idx < PCI_DEV_MAX) {
-                idx++;
-            } else {
-                panic("PCI Device limit reached\n");
-            }
+            pci_read_header(bus, slot, 0, &pcidev->header);
+            pci_read_table(pcidev);
+            pci_parse_class(&pcidev->header);
+            pci_dump(pcidev);
 
-            if (pci_devices[idx - 1].header.header_type & 0x80) {
+            if (pcidev->header.header_type & 0x80) {
                 for (uint32 func = 1; func < 8; func++) {
                     if (pci_config_read16(bus, slot, func, 0) == 0xFFFF) {
                         continue;
                     }
-                    pci_read_header(bus, slot, func, &pci_devices[idx].header);
-                    pci_read_table(&pci_devices[idx]);
-                    pci_parse_class(&pci_devices[idx].header);
-                    pci_dump(&pci_devices[idx]);
-                    if (idx < PCI_DEV_MAX) {
-                        idx++;
-                    } else {
-                        panic("PCI Device limit reached\n");
-                    }
+                    struct pci_device *pcidev2 =
+                        (struct pci_device *)kmalloc(sizeof(struct pci_device));
+                    list_push(&pci_devices, pcidev2);
+
+                    pci_read_header(bus, slot, func, &pcidev2->header);
+                    pci_read_table(pcidev2);
+                    pci_parse_class(&pcidev2->header);
+                    pci_dump(pcidev2);
                 }
             }
         }
