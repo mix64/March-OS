@@ -1,7 +1,6 @@
+#include <kernel.h>
 #include <mm.h>
 #include <mm/slab.h>
-#include <serial.h>
-#include <types.h>
 
 SLAB slabs[SLAB_NUM];
 

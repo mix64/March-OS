@@ -1,5 +1,4 @@
 #include <ide.h>
-#include <types.h>
 #include <x86/asm.h>
 
 #define IDE_COMMAND 0x1F7

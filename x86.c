@@ -1,5 +1,5 @@
+#include <kernel.h>
 #include <mm.h>
-#include <serial.h>
 #include <x86.h>
 
 struct gatedesc idt[256];

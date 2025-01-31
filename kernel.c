@@ -1,7 +1,9 @@
 #include <boot/info.h>
+#include <ide.h>
+#include <kernel.h>
 #include <mm.h>
+#include <mm/slab.h>
 #include <pci.h>
-#include <serial.h>
 #include <system.h>
 #include <x86.h>
 #include <x86/apic.h>

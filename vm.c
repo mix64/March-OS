@@ -1,7 +1,5 @@
-#include <common.h>
+#include <kernel.h>
 #include <mm.h>
-#include <serial.h>
-#include <types.h>
 #include <x86/asm.h>
 
 static uintptr *pgdir;

@@ -1,8 +1,7 @@
+#include <kernel.h>
 #include <list.h>
 #include <mm/slab.h>
 #include <pci.h>
-#include <serial.h>
-#include <types.h>
 #include <x86/asm.h>
 
 #define PCI_CONFIG_ADDRESS 0xCF8
