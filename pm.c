@@ -25,7 +25,7 @@ void kfree(void *addr) {
     freemap = addr;
 }
 
-void mm_init() {
+void pm_init() {
     uint64 mask_lo12 = (BIT64_MASK(MAX_PADDR_BITS) & ~BIT64_MASK(12));
     uint64 mask_lo21 = (BIT64_MASK(MAX_PADDR_BITS) & ~BIT64_MASK(21));
     uint64 allocatable_max = 0;
@@ -74,5 +74,5 @@ out:
          addr >= (uint64)kernel_end; addr -= PAGE_SIZE) {
         kfree((void *)addr);
     }
-    kprintf("[mm] freemap: %x\n", freemap);
+    kprintf("[pm] freemap: %x\n", freemap);
 }

@@ -1,4 +1,4 @@
-OBJS = slab.o
+OBJS = init.o slab.o
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -I ../include $<
