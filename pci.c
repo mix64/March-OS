@@ -14,32 +14,28 @@ static list_t pci_devices;
 void pci_parse_class(struct pci_device_header *header);
 void pci_dump(struct pci_device *pcidev);
 
-uint32 pci_config_read(uint8 bus, uint8 slot, uint8 func, uint8 offset) {
-    uint32 _bus = (uint32)bus;
-    uint32 _slot = (uint32)slot;
-    uint32 _func = (uint32)func;
-
-    uint32 address = PCI_CONFIG_ENABLE | (_bus << 16) | (_slot << 11) |
-                     (_func << 8) | (offset & 0xFC);
+uint32 pci_config_read(uint32 bus, uint32 slot, uint32 func, uint8 offset) {
+    uint32 address = PCI_CONFIG_ENABLE | (bus << 16) | (slot << 11) |
+                     (func << 8) | (offset & 0xFC);
     outl(PCI_CONFIG_ADDRESS, address);
     return inl(PCI_CONFIG_DATA);
 }
 
-uint16 pci_config_read16(uint8 bus, uint8 slot, uint8 func, uint8 offset) {
+uint16 pci_config_read16(uint32 bus, uint32 slot, uint32 func, uint8 offset) {
     uint32 data = pci_config_read(bus, slot, func, offset);
     return (uint16)((data >> ((offset & 2) * 8)) & 0xFFFF);
 }
 
-uint8 pci_config_read8(uint8 bus, uint8 slot, uint8 func, uint8 offset) {
+uint8 pci_config_read8(uint32 bus, uint32 slot, uint32 func, uint8 offset) {
     uint32 data = pci_config_read(bus, slot, func, offset);
     return (uint8)((data >> ((offset & 3) * 8)) & 0xFF);
 }
 
-void pci_read_header(uint8 bus, uint8 slot, uint8 func,
+void pci_read_header(uint32 bus, uint32 slot, uint32 func,
                      struct pci_device_header *header) {
-    header->bus = bus;
-    header->slot = slot;
-    header->func = func;
+    header->bus = (uint8)bus;
+    header->slot = (uint8)slot;
+    header->func = (uint8)func;
 
     header->vendor_id = pci_config_read16(bus, slot, func, 0);
     header->device_id = pci_config_read16(bus, slot, func, 2);
