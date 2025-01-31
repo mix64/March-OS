@@ -10,7 +10,7 @@ ifneq ($(shell $(CC) -dumpspecs 2>/dev/null | grep -e '[^f]nopie'),)
 CFLAGS += -fno-pie -nopie
 endif
 
-CFLAGS += -D__DEBUG__
+CFLAGS += -D__DEBUG__ -D__x64__
 
 SUBDIR := drivers mm
 
@@ -27,7 +27,7 @@ boot.efi:
 	make -C boot
 	mv boot/boot.efi root/EFI/BOOT/BOOTX64.EFI
 
-kernel.bin: apic.o entry.o kernel.o serial.o pm.o pci.o vectors.o trap.o vm.o x86.o list.o $(SUBDIR:=.o)
+kernel.bin: apic.o entry.o kernel.o serial.o pm.o pci.o vectors.o trap.o vm.o x86.o list.o string.o $(SUBDIR:=.o)
 	$(LD) -T kernel.ls -o root/kernel.bin $^
 
 %.o: %.c

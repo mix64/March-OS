@@ -1,4 +1,5 @@
 #include <kernel.h>
+#include <lib/string.h>
 #include <mm.h>
 #include <system.h>
 #include <x86/asm.h>

@@ -1,4 +1,5 @@
 #include <kernel.h>
+#include <lib/string.h>
 #include <mm.h>
 #include <mm/slab.h>
 
@@ -22,6 +23,7 @@ void *kmalloc(uint64 size) {
     if (size <= 64) {
         void *addr = find_free_slab(SLAB_64);
         if (addr != NULL) {
+            memset(addr, 0, 64);
             return addr;
         }
         // No free space, allocate new slab
@@ -54,6 +56,7 @@ void *kmalloc(uint64 size) {
 
     void *addr = find_free_slab(idx);
     if (addr != NULL) {
+        memset(addr, 0, SLAB_MIN_SIZE << idx);
         return addr;
     }
 
