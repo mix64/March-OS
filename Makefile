@@ -29,6 +29,7 @@ boot.efi:
 
 kernel.bin: apic.o entry.o kernel.o serial.o pm.o pci.o vectors.o trap.o vm.o x86.o list.o string.o $(SUBDIR:=.o)
 	$(LD) -T kernel.ls -o root/kernel.bin $^
+	rm $(SUBDIR:=.o)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -I ./include $<
