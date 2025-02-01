@@ -10,3 +10,13 @@ void memset(void *addr, uint8 data, uint64 count) {
     }
 #endif
 }
+
+void memcpy(void *dest, void *src, uint64 count) {
+#ifdef __x64__
+    movsb(dest, src, count);
+#else
+    for (uint64 i = 0; i < count; i++) {
+        ((uint8 *)dest)[i] = ((uint8 *)src)[i];
+    }
+#endif
+}

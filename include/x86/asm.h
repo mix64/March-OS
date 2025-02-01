@@ -62,6 +62,13 @@ static inline void stosb(void *addr, uint64 data, uint64 cnt) {
                  : "memory", "cc");
 }
 
+static inline void movsb(void *dst, void *src, uint64 cnt) {
+    asm volatile("cld; rep movsb"
+                 : "=D"(dst), "=S"(src), "=c"(cnt)
+                 : "0"(dst), "1"(src), "2"(cnt)
+                 : "memory", "cc");
+}
+
 static inline void rdmsr(uint32 msr, uint32 *lo, uint32 *hi) {
     asm volatile("rdmsr" : "=a"(*lo), "=d"(*hi) : "c"(msr));
 }
