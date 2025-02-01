@@ -22,7 +22,7 @@ typedef struct __attribute__((packed)) {
 } FAT16_MBR;
 
 typedef struct __attribute__((packed)) {
-    uint8 jmp[3];  // 0xEB 0x3C 0x90
+    uint8 jmp[3];  // 0xEB 0x3C 0x90 (The 3C value may be different.)
     char oem[8];
     uint16 bytes_per_sector;
     uint8 sectors_per_cluster;

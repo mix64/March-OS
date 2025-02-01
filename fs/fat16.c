@@ -3,52 +3,33 @@
 #include <kernel.h>
 #include <mm.h>
 
-void fat16_mbr_dump(FAT16_MBR *mbr);
+void fat16_dump_mbr(FAT16_MBR *mbr);
+void fat16_dump_bpb(FAT16_BPB *bpb);
 
 void fat16() {
     FAT16_MBR *mbr = (FAT16_MBR *)kmalloc(sizeof(FAT16_MBR));
     ide_read(0, mbr);
-    fat16_mbr_dump(mbr);
+    fat16_dump_mbr(mbr);
 
-    if (mbr->bootsig != 0xAA55 || mbr->table[0].boot != 0x80) {
+    if (mbr->bootsig != 0xAA55 || mbr->table[0].boot != 0x80 ||
+        (mbr->table[0].type != 0x04 && mbr->table[0].type != 0x06)) {
         panic("FAT16: Invalid MBR\n");
     }
 
-    debugf("FAT16 BPB:\n");
     FAT16_BPB *bpb = (FAT16_BPB *)kmalloc(sizeof(FAT16_BPB));
-    for (int i = 0; i < 4; i++) {
-        if (mbr->table[i].type == 0) {
-            continue;
-        }
-        ide_read(mbr->table[i].bpb_begin, bpb);
-        debugf("  Partition %d:\n", i);
-        debugf("    JMP: %x %x %x\n", bpb->jmp[0], bpb->jmp[1], bpb->jmp[2]);
-        debugf("    OEM: %s\n", bpb->oem);
-        debugf("    Bytes per sector: %x\n", bpb->bytes_per_sector);
-        debugf("    Sectors per cluster: %x\n", bpb->sectors_per_cluster);
-        debugf("    Reserved sectors: %x\n", bpb->reserved_sectors);
-        debugf("    FATS: %x\n", bpb->fats);
-        debugf("    Root entries: %x\n", bpb->root_entries);
-        debugf("    Sectors: %x\n", bpb->sectors);
-        debugf("    Media: %x\n", bpb->media);
-        debugf("    Sectors per FAT: %x\n", bpb->sectors_per_fat);
-        debugf("    Sectors per track: %x\n", bpb->sectors_per_track);
-        debugf("    Heads: %x\n", bpb->heads);
-        debugf("    Hidden sectors: %x\n", bpb->hidden_sectors);
-        debugf("    Large sectors: %x\n", bpb->large_sectors);
-        debugf("    Drive number: %x\n", bpb->drive_number);
-        debugf("    Signature: %x\n", bpb->signature);
-        debugf("    Volume ID: %x\n", bpb->volume_id);
-        debugf("    Volume label: %s\n", bpb->volume_label);
-        debugf("    Filesystem type: %s\n", bpb->filesystem_type);
+    // Only the first partition is supported
+    ide_read(mbr->table[0].bpb_begin, bpb);
+    fat16_dump_bpb(bpb);
+    if (bpb->bytes_per_sector != 512 || bpb->fats != 2 ||
+        (bpb->signature != 0x28 && bpb->signature != 0x29)) {
+        panic("FAT16: Invalid BPB\n");
     }
-
     kmfree(bpb);
     kmfree(mbr);
     return;
 }
 
-void fat16_mbr_dump(FAT16_MBR *mbr) {
+void fat16_dump_mbr(FAT16_MBR *mbr) {
     debugf("FAT16 MBR:\n");
     for (int i = 0; i < 4; i++) {
         if (mbr->table[i].type == 0) {
@@ -64,4 +45,27 @@ void fat16_mbr_dump(FAT16_MBR *mbr) {
         debugf("    BPB Begin: %x\n", mbr->table[i].bpb_begin);
         debugf("    Sectors: %x\n", mbr->table[i].sectors);
     }
+}
+
+void fat16_dump_bpb(FAT16_BPB *bpb) {
+    debugf("FAT16 BPB:\n");
+    debugf("  JMP: %x %x %x\n", bpb->jmp[0], bpb->jmp[1], bpb->jmp[2]);
+    debugf("  OEM: %s\n", bpb->oem);
+    debugf("  Bytes per sector: %x\n", bpb->bytes_per_sector);
+    debugf("  Sectors per cluster: %x\n", bpb->sectors_per_cluster);
+    debugf("  Reserved sectors: %x\n", bpb->reserved_sectors);
+    debugf("  FATS: %x\n", bpb->fats);
+    debugf("  Root entries: %x\n", bpb->root_entries);
+    debugf("  Sectors: %x\n", bpb->sectors);
+    debugf("  Media: %x\n", bpb->media);
+    debugf("  Sectors per FAT: %x\n", bpb->sectors_per_fat);
+    debugf("  Sectors per track: %x\n", bpb->sectors_per_track);
+    debugf("  Heads: %x\n", bpb->heads);
+    debugf("  Hidden sectors: %x\n", bpb->hidden_sectors);
+    debugf("  Large sectors: %x\n", bpb->large_sectors);
+    debugf("  Drive number: %x\n", bpb->drive_number);
+    debugf("  Signature: %x\n", bpb->signature);
+    debugf("  Volume ID: %x\n", bpb->volume_id);
+    debugf("  Volume label: %s\n", bpb->volume_label);
+    debugf("  Filesystem type: %s\n", bpb->filesystem_type);
 }
