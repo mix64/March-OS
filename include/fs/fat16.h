@@ -46,4 +46,20 @@ typedef struct __attribute__((packed)) {
     uint16 bootsig;  // 0x55AA
 } FAT16_BPB;
 
+typedef struct __attribute__((packed)) {
+    char filename[11];
+    uint8 attr;  // 0x01: read-only, 0x02: hidden, 0x04: system, 0x08: volumeID,
+                 // 0x10: subdirectory, 0x20: archive, 0x0f: Long filename
+    uint8 _reserved;  // for Windows NT
+    uint8 ctime_ms;
+    uint16 ctime;
+    uint16 cdate;
+    uint16 adate;
+    uint16 _reserved2;  // for FAT32
+    uint16 mtime;
+    uint16 mdate;
+    uint16 cluster;
+    uint32 size;
+} FAT16_DIR_ENTRY;
+
 void fat16();

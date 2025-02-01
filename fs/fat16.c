@@ -1,6 +1,7 @@
 #include <fs/fat16.h>
 #include <ide.h>
 #include <kernel.h>
+#include <lib/string.h>
 #include <mm.h>
 
 void fat16_dump_mbr(FAT16_MBR *mbr);
@@ -16,16 +17,50 @@ void fat16() {
         panic("FAT16: Invalid MBR\n");
     }
 
+    uint32 bpb_begin = mbr->table[0].bpb_begin;
+    kprintf("[fs] FAT16 Partition found\n");
+    kprintf("[fs] BIOS Parameter Block: %x\n", bpb_begin);
+
     FAT16_BPB *bpb = (FAT16_BPB *)kmalloc(sizeof(FAT16_BPB));
     // Only the first partition is supported
-    ide_read(mbr->table[0].bpb_begin, bpb);
+    ide_read(bpb_begin, bpb);
     fat16_dump_bpb(bpb);
     if (bpb->bytes_per_sector != 512 || bpb->fats != 2 ||
         (bpb->signature != 0x28 && bpb->signature != 0x29)) {
         panic("FAT16: Invalid BPB\n");
     }
+    kprintf("[fs] Volume Label: %s\n", bpb->volume_label);
+
+    uint32 fat_begin = bpb_begin + bpb->reserved_sectors;
+    uint32 root_begin = fat_begin + bpb->sectors_per_fat * bpb->fats;
+    kprintf("[fs] File Allocation Table: %x - %x\n", fat_begin, root_begin - 1);
+
+    FAT16_DIR_ENTRY *dir =
+        (FAT16_DIR_ENTRY *)kmalloc(sizeof(FAT16_DIR_ENTRY) * 16);
+    ide_read(root_begin, dir);
+    debugf("FAT16 DIR:\n");
+    for (int i = 0; i < 16; i++) {
+        if (dir[i].filename[0] == 0x00) {
+            break;
+        }
+        char filename[12];
+        memcpy(filename, dir[i].filename, 11);
+        filename[11] = '\0';
+        debugf("  %s\n", filename);
+        debugf("    Attr: %x\n", dir[i].attr);
+        debugf("    CTimeMS: %x\n", dir[i].ctime_ms);
+        debugf("    CTime: %x\n", dir[i].ctime);
+        debugf("    CDate: %x\n", dir[i].cdate);
+        debugf("    ADate: %x\n", dir[i].adate);
+        debugf("    MTime: %x\n", dir[i].mtime);
+        debugf("    MDate: %x\n", dir[i].mdate);
+        debugf("    Cluster: %x\n", dir[i].cluster);
+        debugf("    Size: %x\n", dir[i].size);
+    }
+
     kmfree(bpb);
     kmfree(mbr);
+    kmfree(dir);
     return;
 }
 
