@@ -15,7 +15,7 @@ void ide_wait() {
     while ((inb(IDE_COMMAND) & (ATA_SR_BSY | ATA_SR_DRDY)) != ATA_SR_DRDY);
 }
 
-void ide_read(uint32 sector, char *buf) {
+void ide_read(uint32 sector, void *buf) {
     outb(0x1F6, 0xE0 | ((sector >> 24) & 0xF));
     outb(0x1F2, 1);
     outb(0x1F3, sector & 0xFF);

@@ -1,5 +1,5 @@
 #include <boot/info.h>
-#include <ide.h>
+#include <fs.h>
 #include <kernel.h>
 #include <mm.h>
 #include <pci.h>
@@ -16,6 +16,7 @@ void kernel_main() {
     idt_init();
     apic_init();
     pci_scan();
+    fs_init();
     sti();
     while (1);
 }

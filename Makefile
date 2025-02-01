@@ -12,7 +12,7 @@ endif
 
 CFLAGS += -D__DEBUG__ -D__x64__
 
-SUBDIR := drivers mm
+SUBDIR := drivers fs mm
 
 run: build
 	qemu-system-x86_64 -d cpu_reset -D ./debug.log \
