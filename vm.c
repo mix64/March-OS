@@ -14,7 +14,7 @@ void vm_init() {
             panic("vm_init: create page failed %x\n", va);
         }
     }
-    debugf("[vm] Mapped 0 - %x\n", 1ULL << MAX_PADDR_BITS);
+    debugf("[vm] Mapped 0 - %d GiB\n", (1ULL << MAX_PADDR_BITS) / GiB(1ULL));
     scr3(pgdir);
 }
 

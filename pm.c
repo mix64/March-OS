@@ -12,33 +12,31 @@ uint8 _pm_size_to_idx(enum PMMAP size);
 
 void *pmalloc(enum PMMAP size) {
     uint8 idx = _pm_size_to_idx(size);
-    void *addr;
+    uintptr addr;
 
     if (pmmap[idx] == NULL) {
         if (size == PM_64M) {
             panic("pmalloc: out of memory");
         }
         if (size == PM_512K) {
-            pmmap[idx] = pmalloc(PM_64M);
-            for (int i = 0; i < PM_64M / PM_512K; i++) {
-                addr = (void *)((uintptr)pmmap[idx] + PM_64M - PM_512K * i);
+            addr = (uintptr)pmalloc(PM_64M) + PM_64M - PM_512K;
+            for (int i = 0; i < 128; i++) {  // 128 = 64M / 512K
+                pmfree((void *)addr, PM_512K);
                 addr -= PM_512K;
-                pmfree(addr, PM_512K);
             }
         } else if (size == PM_4K) {
-            pmmap[idx] = pmalloc(PM_512K);
-            for (int i = 0; i < PM_512K / PM_4K; i++) {
-                addr = (void *)((uintptr)pmmap[idx] + PM_512K - PM_4K * i);
+            addr = (uintptr)pmalloc(PM_512K) + PM_512K - PM_4K;
+            for (int i = 0; i < 128; i++) {  // 128 = 512K / 4K
+                pmfree((void *)addr, PM_4K);
                 addr -= PM_4K;
-                pmfree(addr, PM_4K);
             }
         }
     }
 
-    addr = (void *)pmmap[idx];
+    addr = (uintptr)pmmap[idx];
     pmmap[idx] = (uintptr *)*pmmap[idx];
-    memset(addr, 0, size);
-    return addr;
+    memset((void *)addr, 0, size);
+    return (void *)addr;
 }
 
 void pmfree(void *addr, enum PMMAP size) {
@@ -128,9 +126,19 @@ void pm_init() {
     }
 
 out:
-    for (uint64 addr = (allocatable_max - PAGE_SIZE);
-         addr >= (uint64)kernel_end; addr -= PAGE_SIZE) {
-        pmfree((void *)addr, KiB(4));
+    debugf("[pm] kernel_end: %x\n", kernel_end);
+    debugf("[pm] allocatable_max: %x\n", allocatable_max);
+    while (allocatable_max >= (uint64)kernel_end + PM_64M) {
+        allocatable_max -= PM_64M;
+        pmfree((void *)allocatable_max, PM_64M);
+    }
+    while (allocatable_max >= (uint64)kernel_end + PM_512K) {
+        allocatable_max -= PM_512K;
+        pmfree((void *)allocatable_max, PM_512K);
+    }
+    while (allocatable_max >= (uint64)kernel_end + PM_4K) {
+        allocatable_max -= PM_4K;
+        pmfree((void *)allocatable_max, PM_4K);
     }
     pm_dump();
 }
