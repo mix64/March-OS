@@ -7,17 +7,14 @@ static uintptr *pgdir;
 void create_pte(pte_t *pte, uint64 flag);
 
 void vm_init() {
-    pgdir = (uintptr *)kalloc();
+    pgdir = (uintptr *)pmalloc(PM_4K);
     for (uintptr va = 0; va < (1ULL << MAX_PADDR_BITS); va += MiB(2)) {
         pte_t *r = walk_pgdir(va, TRUE, TRUE);
         if (r == NULL) {
             panic("vm_init: create page failed %x\n", va);
         }
     }
-    void *addr = kalloc();
     debugf("[vm] Mapped 0 - %x\n", 1ULL << MAX_PADDR_BITS);
-    debugf("[vm] pgdir size: %x\n", (uintptr)addr - (uintptr)pgdir);
-    kfree(addr);
     scr3(pgdir);
 }
 
@@ -64,4 +61,6 @@ pte_t *walk_pgdir(uintptr va, bool create, bool large) {
 
 void setflag(pte_t *pte, uint64 flag) { *pte |= flag; }
 
-void create_pte(pte_t *pte, uint64 flag) { *pte = (uintptr)kalloc() | flag; }
+void create_pte(pte_t *pte, uint64 flag) {
+    *pte = (uintptr)pmalloc(PM_4K) | flag;
+}

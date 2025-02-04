@@ -21,8 +21,14 @@
 void mm_init();
 
 // pm.c
-void *kalloc();
-void kfree(void *addr);
+#define PMMAP_NUM 3
+enum PMMAP {
+    PM_4K = PAGE_SIZE,
+    PM_512K = KiB(512ULL),
+    PM_64M = MiB(64ULL),
+};
+void *pmalloc(enum PMMAP size);
+void pmfree(void *addr, enum PMMAP size);
 
 // vm.c
 pte_t *walk_pgdir(uintptr va, bool create, bool large);

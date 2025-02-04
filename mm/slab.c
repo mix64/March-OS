@@ -10,7 +10,7 @@ void slab_tests();
 
 void slab_init() {
     for (int i = 0; i < SLAB_NUM; i++) {
-        slabs[i].address = (uintptr)kalloc();
+        slabs[i].address = (uintptr)pmalloc(PM_4K);
         slabs[i].bitmap = 0;
         slabs[i].next = NULL;
     }
@@ -30,7 +30,7 @@ void *kmalloc(uint64 size) {
         // 1st sector used by SLAB struct
         SLAB *last = &slabs[SLAB_64];
         for (; last->next != NULL; last = last->next);
-        SLAB *new = (SLAB *)kalloc();
+        SLAB *new = (SLAB *)pmalloc(PM_4K);
         new->address = (uintptr) new;
         new->bitmap = 0b11;
         last->next = new;
@@ -64,7 +64,7 @@ void *kmalloc(uint64 size) {
     SLAB *entry = &slabs[idx];
     for (; entry->next != NULL; entry = entry->next);
     SLAB *new = (SLAB *)kmalloc(sizeof(SLAB));
-    new->address = (uintptr)kalloc();
+    new->address = (uintptr)pmalloc(PM_4K);
     new->bitmap = 0b1;
     entry->next = new;
     return (void *)(new->address);
@@ -135,7 +135,7 @@ found_entry:
     // Free slab64 if all sectors are free
     if (entry->bitmap == 0b1 && size == SLAB_MIN_SIZE && prev != NULL) {
         prev->next = entry->next;
-        kfree((void *)entry);
+        pmfree((void *)entry, PM_4K);
     }
 }
 

@@ -4,26 +4,83 @@
 #include <system.h>
 #include <x86/asm.h>
 
-uintptr *freemap;
+uintptr *pmmap[PMMAP_NUM];
 extern char kernel_end[];
 
-void *kalloc() {
-    if (freemap == NULL) {
-        panic("kalloc: out of memory");
+void pm_dump();
+uint8 _pm_size_to_idx(enum PMMAP size);
+
+void *pmalloc(enum PMMAP size) {
+    uint8 idx = _pm_size_to_idx(size);
+    void *addr;
+
+    if (pmmap[idx] == NULL) {
+        if (size == PM_64M) {
+            panic("pmalloc: out of memory");
+        }
+        if (size == PM_512K) {
+            pmmap[idx] = pmalloc(PM_64M);
+            for (int i = 0; i < PM_64M / PM_512K; i++) {
+                addr = (void *)((uintptr)pmmap[idx] + PM_64M - PM_512K * i);
+                addr -= PM_512K;
+                pmfree(addr, PM_512K);
+            }
+        } else if (size == PM_4K) {
+            pmmap[idx] = pmalloc(PM_512K);
+            for (int i = 0; i < PM_512K / PM_4K; i++) {
+                addr = (void *)((uintptr)pmmap[idx] + PM_512K - PM_4K * i);
+                addr -= PM_4K;
+                pmfree(addr, PM_4K);
+            }
+        }
     }
-    void *addr = (void *)freemap;
-    freemap = (uintptr *)*freemap;
-    memset(addr, 0, PAGE_SIZE);
+
+    addr = (void *)pmmap[idx];
+    pmmap[idx] = (uintptr *)*pmmap[idx];
+    memset(addr, 0, size);
     return addr;
 }
 
-void kfree(void *addr) {
+void pmfree(void *addr, enum PMMAP size) {
+    uint8 idx = _pm_size_to_idx(size);
     if (addr == NULL || (uintptr)addr < (uintptr)kernel_end ||
         (uintptr)addr >= SYSTEM.memtotal) {
-        panic("kfree: invalid address %x", addr);
+        panic("pmfree: invalid address %x", addr);
     }
-    *(uintptr *)addr = (uintptr)freemap;
-    freemap = addr;
+    *(uintptr *)addr = (uintptr)pmmap[idx];
+    pmmap[idx] = addr;
+}
+
+void pm_dump() {
+    for (int i = 0; i < PMMAP_NUM; i++) {
+        uintptr *map = pmmap[i];
+        uint64 count = 0;
+        if (map == NULL) {
+            continue;
+        }
+        for (uintptr *p = map; p != NULL; p = (uintptr *)*p) {
+            count++;
+        }
+        if (i == 0) {
+            kprintf("[pm] pmmap[4K]: %d\n", count);
+        } else if (i == 1) {
+            kprintf("[pm] pmmap[512K]: %d\n", count);
+        } else if (i == 2) {
+            kprintf("[pm] pmmap[64M]: %d\n", count);
+        }
+    }
+}
+
+uint8 _pm_size_to_idx(enum PMMAP size) {
+    if (size == PM_4K) {
+        return 0;
+    } else if (size == PM_512K) {
+        return 1;
+    } else if (size == PM_64M) {
+        return 2;
+    } else {
+        panic("pm: invalid size %d", size);
+    }
 }
 
 void pm_init() {
@@ -73,7 +130,7 @@ void pm_init() {
 out:
     for (uint64 addr = (allocatable_max - PAGE_SIZE);
          addr >= (uint64)kernel_end; addr -= PAGE_SIZE) {
-        kfree((void *)addr);
+        pmfree((void *)addr, KiB(4));
     }
-    kprintf("[pm] freemap: %x\n", freemap);
+    pm_dump();
 }
