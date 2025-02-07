@@ -8,9 +8,16 @@ enum SLAB_IDX {
     SLAB_128,
     SLAB_256,
     SLAB_512,
-    SLAB_1024,
-    SLAB_2048,
-    SLAB_4096,
+    SLAB_1K,
+    SLAB_2K,
+    SLAB_4K,
+    SLAB_8K,
+    SLAB_16K,
+    SLAB_32K,
+    SLAB_64K,
+    SLAB_128K,
+    SLAB_256K,
+    SLAB_512K,
     SLAB_NUM
 };
 

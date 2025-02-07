@@ -6,11 +6,16 @@
 SLAB slabs[SLAB_NUM];
 
 void *find_free_slab(enum SLAB_IDX idx);
+enum SLAB_IDX _size_to_slab_idx(uint64 size);
 void slab_tests();
 
 void slab_init() {
     for (int i = 0; i < SLAB_NUM; i++) {
-        slabs[i].address = (uintptr)pmalloc(PM_4K);
+        if (i > SLAB_4K) {
+            slabs[i].address = (uintptr)pmalloc(PM_512K);
+        } else {
+            slabs[i].address = (uintptr)pmalloc(PM_4K);
+        }
         slabs[i].bitmap = 0;
         slabs[i].next = NULL;
     }
@@ -37,23 +42,7 @@ void *kmalloc(uint64 size) {
         return (void *)(new->address + 64);
     }
 
-    enum SLAB_IDX idx;
-    if (size <= 128) {
-        idx = SLAB_128;
-    } else if (size <= 256) {
-        idx = SLAB_256;
-    } else if (size <= 512) {
-        idx = SLAB_512;
-    } else if (size <= 1024) {
-        idx = SLAB_1024;
-    } else if (size <= 2048) {
-        idx = SLAB_2048;
-    } else if (size <= 4096) {
-        idx = SLAB_4096;
-    } else {
-        panic("kmalloc: size %d not supported\n", size);
-    }
-
+    enum SLAB_IDX idx = _size_to_slab_idx(size);
     void *addr = find_free_slab(idx);
     if (addr != NULL) {
         memset(addr, 0, SLAB_MIN_SIZE << idx);
@@ -64,7 +53,11 @@ void *kmalloc(uint64 size) {
     SLAB *entry = &slabs[idx];
     for (; entry->next != NULL; entry = entry->next);
     SLAB *new = (SLAB *)kmalloc(sizeof(SLAB));
-    new->address = (uintptr)pmalloc(PM_4K);
+    if (idx > SLAB_4K) {
+        new->address = (uintptr)pmalloc(PM_512K);
+    } else {
+        new->address = (uintptr)pmalloc(PM_4K);
+    }
     new->bitmap = 0b1;
     entry->next = new;
     return (void *)(new->address);
@@ -76,9 +69,10 @@ void *find_free_slab(enum SLAB_IDX idx) {
     }
     SLAB *entry = &slabs[idx];
     uint64 size = SLAB_MIN_SIZE << idx;
+    uint64 pages = size > KiB(4) ? (PM_512K / size) : (PM_4K / size);
     while (entry != NULL) {
         if (entry->bitmap != 0xFFFFFFFFFFFFFFFF) {
-            for (int i = 0; i < (PAGE_SIZE / size); i++) {
+            for (int i = 0; i < pages; i++) {
                 if ((entry->bitmap & (1ULL << i)) == 0) {
                     entry->bitmap |= (1ULL << i);
                     return (void *)(entry->address + i * size);
@@ -96,17 +90,17 @@ void kmfree(void *addr_p) {
     }
 
     uintptr addr = (uintptr)addr_p;
-    uintptr base = ROUNDDOWN(addr, PAGE_SIZE);
     SLAB *entry, *prev;
-    uint64 size;
+    uint64 page_size, slab_size;
 
     // Find entry
     for (int i = 0; i < SLAB_NUM; i++) {
         entry = &slabs[i];
         prev = NULL;
+        page_size = i > SLAB_4K ? PM_512K : PM_4K;
+        slab_size = SLAB_MIN_SIZE << i;
         while (entry != NULL) {
-            if (entry->address == base) {
-                size = SLAB_MIN_SIZE << i;
+            if (entry->address + page_size > addr && entry->address <= addr) {
                 goto found_entry;
             }
             prev = entry;
@@ -120,8 +114,8 @@ found_entry:
     }
 
     // Free slab sector
-    int idx = (addr - base) / size;
-    if (addr % size != 0 || idx < 0 || idx >= size) {
+    int idx = (addr - entry->address) / slab_size;
+    if (addr % slab_size != 0 || idx < 0 || idx >= (page_size / slab_size)) {
         panic("kmfree: invalid addr %x\n", addr);
     }
     entry->bitmap &= ~(1ULL << idx);
@@ -133,9 +127,13 @@ found_entry:
     }
 
     // Free slab64 if all sectors are free
-    if (entry->bitmap == 0b1 && size == SLAB_MIN_SIZE && prev != NULL) {
+    if (entry->bitmap == 0b1 && slab_size == SLAB_MIN_SIZE && prev != NULL) {
         prev->next = entry->next;
-        pmfree((void *)entry, PM_4K);
+        if (page_size > KiB(4)) {
+            pmfree((void *)entry, PM_512K);
+        } else {
+            pmfree((void *)entry, PM_4K);
+        }
     }
 }
 
@@ -261,4 +259,38 @@ failed:
     }
 
     panic("slab_tests failed\n");
+}
+
+enum SLAB_IDX _size_to_slab_idx(uint64 size) {
+    if (size <= 64) {
+        return SLAB_64;
+    } else if (size <= 128) {
+        return SLAB_128;
+    } else if (size <= 256) {
+        return SLAB_256;
+    } else if (size <= 512) {
+        return SLAB_512;
+    } else if (size <= KiB(1)) {
+        return SLAB_1K;
+    } else if (size <= KiB(2)) {
+        return SLAB_2K;
+    } else if (size <= KiB(4)) {
+        return SLAB_4K;
+    } else if (size <= KiB(8)) {
+        return SLAB_8K;
+    } else if (size <= KiB(16)) {
+        return SLAB_16K;
+    } else if (size <= KiB(32)) {
+        return SLAB_32K;
+    } else if (size <= KiB(64)) {
+        return SLAB_64K;
+    } else if (size <= KiB(128)) {
+        return SLAB_128K;
+    } else if (size <= KiB(256)) {
+        return SLAB_256K;
+    } else if (size <= KiB(512)) {
+        return SLAB_512K;
+    } else {
+        panic("kmalloc: size %d not supported\n", size);
+    }
 }
