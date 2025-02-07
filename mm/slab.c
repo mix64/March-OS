@@ -144,6 +144,7 @@ void slab_tests() {
     void *addr2[64];
     SLAB *slab64 = &slabs[SLAB_64];
     SLAB *slab128 = &slabs[SLAB_128];
+    SLAB *slab8K = &slabs[SLAB_8K];
 
     for (int i = 0; i < 65; i++) {
         addr[i] = kmalloc(64);
@@ -193,7 +194,7 @@ void slab_tests() {
         kmfree(addr2[i]);
     }
     /* expected:
-        [0] bitmap:0, next->null, prev->null
+        [0] bitmap:0, next->null
     */
     if (slab64->bitmap != 0 || slab64->next != NULL) {
         goto failed;
@@ -234,11 +235,50 @@ void slab_tests() {
     for (int i = 1; i < 33; i += 2) {
         kmfree(addr[i]);
     }
+    /* expected slab64:
+        [0] bitmap:0b0, next->null
+       expected slab128:
+        [0] bitmap:0x0, next->null
+    */
     if ((slab64->bitmap != 0 || slab64->next != NULL) ||
         (slab128->bitmap != 0 || slab128->next != NULL)) {
         goto failed;
     }
-    debugf("7\n");
+    debugf("7 ");
+
+    for (int i = 0; i < 65; i++) {
+        addr[i] = kmalloc(KiB(8));
+    }
+    /* expected slab64:
+        [0] bitmap:0b0, next->null
+       expected slab128:
+        [0] bitmap:0x0, next->null
+       expected slab8K
+        [0] bitmap:0xFFFFFFFF_FFFFFFFF, next->[1]
+        [1] bitmap:0x1, next->null
+    */
+    if ((slab64->bitmap != 0b1 || slab64->next != NULL) ||
+        (slab8K->bitmap != 0xFFFFFFFFFFFFFFFF || slab8K->next == NULL) ||
+        (slab8K->next->bitmap != 0x1 || slab8K->next->next != NULL)) {
+        goto failed;
+    }
+    debugf("8 ");
+    for (int i = 0; i < 65; i++) {
+        kmfree(addr[i]);
+    }
+    /* expected slab64:
+        [0] bitmap:0b0, next->null
+       expected slab128:
+        [0] bitmap:0x0, next->null
+       expected slab8K
+        [0] bitmap:0x0, next->null
+    */
+    if ((slab64->bitmap != 0 || slab64->next != NULL) ||
+        (slab128->bitmap != 0 || slab128->next != NULL) ||
+        (slab8K->bitmap != 0 || slab8K->next != NULL)) {
+        goto failed;
+    }
+    debugf("9\n");
     debugf("[slab] finish slab_tests\n");
     return;
 
@@ -257,7 +297,13 @@ failed:
         debugf("             next %x\n", slab128->next);
         slab128 = slab128->next;
     }
-
+    while (slab8K != NULL) {
+        debugf("Dump slab8K: %x\n", slab8K);
+        debugf("             address %x\n", slab8K->address);
+        debugf("             bitmap %x\n", slab8K->bitmap);
+        debugf("             next %x\n", slab8K->next);
+        slab8K = slab8K->next;
+    }
     panic("slab_tests failed\n");
 }
 
