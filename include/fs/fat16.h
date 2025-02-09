@@ -1,4 +1,5 @@
 #pragma once
+#include <fs.h>
 #include <types.h>
 
 /* references:
@@ -7,6 +8,33 @@
     https://www.adrian.idv.hk/2009-11-15-fat32/
     https://www.markn.org/blog/2008/07/sd2.html
 */
+
+#define FAT16_ATTR_READONLY 0x01
+#define FAT16_ATTR_HIDDEN 0x02
+#define FAT16_ATTR_SYSTEM 0x04
+#define FAT16_ATTR_VOLUMEID 0x08
+#define FAT16_ATTR_DIRECTORY 0x10
+#define FAT16_ATTR_ARCHIVE 0x20
+#define FAT16_ATTR_LFN 0x0F
+
+typedef struct {
+    uint16 bpb_entry;
+    uint16 fat_entry;
+    uint16 rootdir_entry;
+    uint16 data_entry;
+
+    uint16 sector_size;
+    uint16 cluster_size;
+    uint16 fat_size;
+    uint32 partition0_size;
+
+    uint16 sector_per_cluster;
+    uint16 sector_per_fat;
+    uint16 sector_per_partition0;
+
+    uint16 root_entries;
+
+} FAT16;
 
 typedef struct __attribute__((packed)) {
     uint8 _code[446];
@@ -62,7 +90,6 @@ typedef struct __attribute__((packed)) {
     uint32 size;
 } FAT16_DIR_ENTRY;
 
-void fat16();
 typedef struct __attribute__((packed)) {
     uint8 ord;
     short name1[5];
@@ -73,3 +100,5 @@ typedef struct __attribute__((packed)) {
     uint16 zero;
     short name3[2];
 } FAT16_LFN_ENTRY;
+
+void fat16_init();

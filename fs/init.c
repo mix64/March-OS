@@ -1,5 +1,4 @@
 #include <fs.h>
+#include <fs/fat16.h>
 
-extern void fat16();
-
-void fs_init() { fat16(); }
+void fs_init() { fat16_init(); }

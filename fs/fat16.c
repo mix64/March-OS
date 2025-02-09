@@ -6,62 +6,93 @@
 
 void fat16_dump_mbr(FAT16_MBR *mbr);
 void fat16_dump_bpb(FAT16_BPB *bpb);
+void fat16_dump_dir(FAT16_DIR_ENTRY *dir);
+void fat16_read_cluster(uint16 cluster, char *buf);
+uint16 fat16_next_cluster(uint16 cluster);
 
-void fat16() {
+static FAT16 fat16;
+
+void fat16_init() {
+    /*
+        Read MBR
+    */
     FAT16_MBR *mbr = (FAT16_MBR *)kmalloc(sizeof(FAT16_MBR));
     ide_read(0, mbr);
+#ifdef __DEBUG__
     fat16_dump_mbr(mbr);
-
+#endif
+    // TODO: Support multiple partitions
     if (mbr->bootsig != 0xAA55 || mbr->table[0].boot != 0x80 ||
         (mbr->table[0].type != 0x04 && mbr->table[0].type != 0x06)) {
         panic("FAT16: Invalid MBR\n");
     }
+    fat16.bpb_entry = mbr->table[0].bpb_begin;
+    kprintf("[fs] FAT16 Partition0 found\n");
 
-    uint32 bpb_begin = mbr->table[0].bpb_begin;
-    kprintf("[fs] FAT16 Partition found\n");
-    kprintf("[fs] BIOS Parameter Block: %x\n", bpb_begin);
-
+    /*
+        Read BPB
+    */
     FAT16_BPB *bpb = (FAT16_BPB *)kmalloc(sizeof(FAT16_BPB));
-    // Only the first partition is supported
-    ide_read(bpb_begin, bpb);
+    ide_read(fat16.bpb_entry, bpb);
+#ifdef __DEBUG__
     fat16_dump_bpb(bpb);
-    if (bpb->bytes_per_sector != 512 || bpb->fats != 2 ||
+#endif
+    if (bpb->bytes_per_sector != SECTOR_SIZE || bpb->fats != 2 ||
         (bpb->signature != 0x28 && bpb->signature != 0x29)) {
         panic("FAT16: Invalid BPB\n");
     }
+    fat16.sector_size = bpb->bytes_per_sector;
+    fat16.cluster_size = bpb->bytes_per_sector * bpb->sectors_per_cluster;
+    fat16.fat_size = bpb->bytes_per_sector * bpb->sectors_per_fat;
+    fat16.partition0_size = mbr->table[0].sectors * bpb->bytes_per_sector;
+    fat16.sector_per_cluster = bpb->sectors_per_cluster;
+    fat16.sector_per_fat = bpb->sectors_per_fat;
+    fat16.sector_per_partition0 = bpb->sectors;
+    kprintf("[fs] Partition Size: %d KiB\n", fat16.partition0_size / KiB(1));
+    kprintf("[fs] Cluster Size: %d KiB\n", fat16.cluster_size / KiB(1));
+    kprintf("[fs] FAT Size: %d KiB\n", fat16.fat_size / KiB(1));
     kprintf("[fs] Volume Label: %s\n", bpb->volume_label);
 
-    uint32 fat_begin = bpb_begin + bpb->reserved_sectors;
-    uint32 root_begin = fat_begin + bpb->sectors_per_fat * bpb->fats;
-    kprintf("[fs] File Allocation Table: %x - %x\n", fat_begin, root_begin - 1);
+    /*
+        Read FAT
+    */
+    fat16.fat_entry = fat16.bpb_entry + bpb->reserved_sectors;
+    fat16.root_entries = bpb->root_entries;
+    fat16.rootdir_entry = fat16.fat_entry + bpb->sectors_per_fat * bpb->fats;
+    fat16.data_entry = fat16.rootdir_entry + sizeof(FAT16_DIR_ENTRY) *
+                                                 bpb->root_entries /
+                                                 bpb->bytes_per_sector;
 
-    FAT16_DIR_ENTRY *dir =
-        (FAT16_DIR_ENTRY *)kmalloc(sizeof(FAT16_DIR_ENTRY) * 16);
-    ide_read(root_begin, dir);
-    debugf("FAT16 DIR:\n");
-    for (int i = 0; i < 16; i++) {
-        if (dir[i].filename[0] == 0x00) {
-            break;
-        }
-        char filename[12];
-        memcpy(filename, dir[i].filename, 11);
-        filename[11] = '\0';
-        debugf("  %s\n", filename);
-        debugf("    Attr: %x\n", dir[i].attr);
-        debugf("    CTimeMS: %x\n", dir[i].ctime_ms);
-        debugf("    CTime: %x\n", dir[i].ctime);
-        debugf("    CDate: %x\n", dir[i].cdate);
-        debugf("    ADate: %x\n", dir[i].adate);
-        debugf("    MTime: %x\n", dir[i].mtime);
-        debugf("    MDate: %x\n", dir[i].mdate);
-        debugf("    Cluster: %x\n", dir[i].cluster);
-        debugf("    Size: %x\n", dir[i].size);
-    }
-
-    kmfree(bpb);
     kmfree(mbr);
-    kmfree(dir);
+    kmfree(bpb);
     return;
+}
+
+void fat16_read_cluster(uint16 cluster, char *buf) {
+    for (int i = 0; i < fat16.sector_per_cluster; i++) {
+        ide_read(
+            fat16.data_entry + (cluster - 2) * fat16.sector_per_cluster + i,
+            buf + fat16.sector_size * i);
+    }
+}
+
+uint16 fat16_next_cluster(uint16 cluster) {
+    uint16 *fat = (uint16 *)kmalloc(fat16.sector_size);
+
+    // 256 = 512(sector size) / 2(FAT entry size)
+    ide_read(fat16.fat_entry + (cluster / (fat16.sector_size / 2)), fat);
+    uint16 next = fat[cluster % (fat16.sector_size / 2)];
+
+    kmfree(fat);
+    return next;
+}
+
+void fat16_test() {
+    // dump rootdir
+    FAT16_DIR_ENTRY *rootdir = (FAT16_DIR_ENTRY *)kmalloc(
+        sizeof(FAT16_DIR_ENTRY) * fat16.root_entries);
+    ide_read_seq(fat16.rootdir_entry, rootdir,
+                 sizeof(FAT16_DIR_ENTRY) * fat16.root_entries / SECTOR_SIZE);
 }
 
 void fat16_dump_mbr(FAT16_MBR *mbr) {
