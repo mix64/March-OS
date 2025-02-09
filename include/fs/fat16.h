@@ -63,3 +63,13 @@ typedef struct __attribute__((packed)) {
 } FAT16_DIR_ENTRY;
 
 void fat16();
+typedef struct __attribute__((packed)) {
+    uint8 ord;
+    short name1[5];
+    uint8 attr;
+    uint8 type;  // 0
+    uint8 checksum;
+    short name2[6];
+    uint16 zero;
+    short name3[2];
+} FAT16_LFN_ENTRY;
