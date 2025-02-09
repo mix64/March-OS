@@ -30,3 +30,9 @@ void ide_read(uint32 sector, void *buf) {
         buf += 4;
     }
 }
+
+void ide_read_seq(uint32 sector, void *buf, uint32 count) {
+    for (uint32 i = 0; i < count; i++) {
+        ide_read(sector + i, buf + i * 512);
+    }
+}
