@@ -6,9 +6,10 @@
 
 void fat16_dump_mbr(FAT16_MBR *mbr);
 void fat16_dump_bpb(FAT16_BPB *bpb);
-void fat16_dump_dir(FAT16_DIR_ENTRY *dir);
+void fat16_dump_dir(FAT16_DIR_ENTRY *dir, uint32 entries);
 void fat16_read_cluster(uint16 cluster, char *buf);
 uint16 fat16_next_cluster(uint16 cluster);
+void fat16_test();
 
 static FAT16 fat16;
 
@@ -48,14 +49,6 @@ void fat16_init() {
     fat16.sector_per_cluster = bpb->sectors_per_cluster;
     fat16.sector_per_fat = bpb->sectors_per_fat;
     fat16.sector_per_partition0 = bpb->sectors;
-    kprintf("[fs] Partition Size: %d KiB\n", fat16.partition0_size / KiB(1));
-    kprintf("[fs] Cluster Size: %d KiB\n", fat16.cluster_size / KiB(1));
-    kprintf("[fs] FAT Size: %d KiB\n", fat16.fat_size / KiB(1));
-    kprintf("[fs] Volume Label: %s\n", bpb->volume_label);
-
-    /*
-        Read FAT
-    */
     fat16.fat_entry = fat16.bpb_entry + bpb->reserved_sectors;
     fat16.root_entries = bpb->root_entries;
     fat16.rootdir_entry = fat16.fat_entry + bpb->sectors_per_fat * bpb->fats;
@@ -63,8 +56,17 @@ void fat16_init() {
                                                  bpb->root_entries /
                                                  bpb->bytes_per_sector;
 
+    kprintf("[fs] Partition Size: %d KiB\n", fat16.partition0_size / KiB(1));
+    kprintf("[fs] Cluster Size: %d KiB\n", fat16.cluster_size / KiB(1));
+    kprintf("[fs] FAT Size: %d KiB\n", fat16.fat_size / KiB(1));
+    kprintf("[fs] Volume Label: %s\n", bpb->volume_label);
+
     kmfree(mbr);
     kmfree(bpb);
+
+#ifdef __DEBUG__
+    fat16_test();
+#endif
     return;
 }
 
@@ -80,8 +82,9 @@ uint16 fat16_next_cluster(uint16 cluster) {
     uint16 *fat = (uint16 *)kmalloc(fat16.sector_size);
 
     // 256 = 512(sector size) / 2(FAT entry size)
-    ide_read(fat16.fat_entry + (cluster / (fat16.sector_size / 2)), fat);
-    uint16 next = fat[cluster % (fat16.sector_size / 2)];
+    uint16 fat_entries = fat16.sector_size / sizeof(uint16);
+    ide_read(fat16.fat_entry + (cluster / fat_entries), fat);
+    uint16 next = fat[cluster % fat_entries];
 
     kmfree(fat);
     return next;
@@ -89,10 +92,14 @@ uint16 fat16_next_cluster(uint16 cluster) {
 
 void fat16_test() {
     // dump rootdir
-    FAT16_DIR_ENTRY *rootdir = (FAT16_DIR_ENTRY *)kmalloc(
-        sizeof(FAT16_DIR_ENTRY) * fat16.root_entries);
+    uint32 rootdir_size = sizeof(FAT16_DIR_ENTRY) * fat16.root_entries;
+    FAT16_DIR_ENTRY *rootdir = (FAT16_DIR_ENTRY *)kmalloc(rootdir_size);
     ide_read_seq(fat16.rootdir_entry, rootdir,
-                 sizeof(FAT16_DIR_ENTRY) * fat16.root_entries / SECTOR_SIZE);
+                 rootdir_size / fat16.sector_size);
+    debugf("rootdir entry: %x\n", fat16.rootdir_entry);
+    debugf("rootdir size: %d\n", rootdir_size);
+
+    fat16_dump_dir(rootdir, fat16.root_entries);
 }
 
 void fat16_dump_mbr(FAT16_MBR *mbr) {
@@ -136,9 +143,9 @@ void fat16_dump_bpb(FAT16_BPB *bpb) {
     debugf("  Filesystem type: %s\n", bpb->filesystem_type);
 }
 
-void fat16_dump_dir(FAT16_DIR_ENTRY *dir) {
+void fat16_dump_dir(FAT16_DIR_ENTRY *dir, uint32 entries) {
     debugf("FAT16 DIR:\n");
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < entries; i++) {
         if (dir[i].filename[0] == 0x00) {
             break;
         }
@@ -158,7 +165,6 @@ void fat16_dump_dir(FAT16_DIR_ENTRY *dir) {
             debugf("  LFN: %x\n", lfn->ord);
             debugf("    filename: %s\n", filename);
             debugf("    attr: %x\n", lfn->attr);
-            debugf("    type: %x\n", lfn->type);
             debugf("    checksum: %x\n", lfn->checksum);
             continue;
         }
@@ -182,7 +188,26 @@ void fat16_dump_dir(FAT16_DIR_ENTRY *dir) {
         uint8 a_day = dir[i].adate & 0x001F;
 
         debugf("  %s\n", filename);
-        debugf("    Attr: %x\n", dir[i].attr);
+        debugf("    FileType: ");
+        if (dir[i].attr & 0x01) {
+            debugf("Read-only ");
+        }
+        if (dir[i].attr & 0x02) {
+            debugf("Hidden ");
+        }
+        if (dir[i].attr & 0x04) {
+            debugf("System ");
+        }
+        if (dir[i].attr & 0x08) {
+            debugf("VolumeID ");
+        }
+        if (dir[i].attr & 0x10) {
+            debugf("Directory ");
+        }
+        if (dir[i].attr & 0x20) {
+            debugf("Archive ");
+        }
+        debugf("(%x) \n", dir[i].attr);
         debugf("    Cluster: %x\n", dir[i].cluster);
         debugf("    Size: %d\n", dir[i].size);
         debugf("    Create DateTime: %d-%d-%d %d:%d:%d\n", c_year, c_month,
