@@ -94,10 +94,10 @@ typedef struct __attribute__((packed)) {
     uint8 ord;
     short name1[5];
     uint8 attr;
-    uint8 type;  // 0
+    uint8 _zero0;  // 0
     uint8 checksum;
     short name2[6];
-    uint16 zero;
+    uint16 _zero1;
     short name3[2];
 } FAT16_LFN_ENTRY;
 
