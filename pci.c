@@ -87,7 +87,9 @@ void pci_scan() {
             pci_read_header(bus, slot, 0, &pcidev->header);
             pci_read_table(pcidev);
             pci_parse_class(&pcidev->header);
+#ifdef __DEBUG__
             pci_dump(pcidev);
+#endif
 
             if (pcidev->header.header_type & 0x80) {
                 for (uint32 func = 1; func < 8; func++) {
@@ -101,7 +103,9 @@ void pci_scan() {
                     pci_read_header(bus, slot, func, &pcidev2->header);
                     pci_read_table(pcidev2);
                     pci_parse_class(&pcidev2->header);
+#ifdef __DEBUG__
                     pci_dump(pcidev2);
+#endif
                 }
             }
         }
@@ -110,33 +114,33 @@ void pci_scan() {
 
 void pci_dump(struct pci_device *pcidev) {
     struct pci_device_header *header = &pcidev->header;
-    debugf("        Vendor: %x\n", header->vendor_id);
-    debugf("        Device: %x\n", header->device_id);
-    debugf("        Type: %x\n", header->header_type);
-    debugf("        Status: %x\n", header->status);
-    debugf("        Command: %x\n", header->command);
-    debugf("        Class: %x\n", header->class_id);
-    debugf("        Subclass: %x\n", header->subclass_id);
-    debugf("        Prog IF: %x\n", header->prog_if);
-    debugf("        Rev ID: %x\n", header->rev_id);
-    debugf("        BIST: %x\n", header->bist);
-    debugf("        Latency Timer: %x\n", header->latency_timer);
-    debugf("        Cache Line Size: %x\n", header->cache_line_size);
-    debugf("        BAR0: %x\n", pcidev->bars[0]);
-    debugf("        BAR1: %x\n", pcidev->bars[1]);
-    debugf("        BAR2: %x\n", pcidev->bars[2]);
-    debugf("        BAR3: %x\n", pcidev->bars[3]);
-    debugf("        BAR4: %x\n", pcidev->bars[4]);
-    debugf("        BAR5: %x\n", pcidev->bars[5]);
-    debugf("        Cardbus CIS Pointer: %x\n", pcidev->cardbus_cis_pointer);
-    debugf("        Subsystem Vendor ID: %x\n", pcidev->subsystem_vendor_id);
-    debugf("        Subsystem ID: %x\n", pcidev->subsystem_id);
-    debugf("        Expansion ROM Base: %x\n", pcidev->expansion_rom_base);
-    debugf("        Cap Pointer: %x\n", pcidev->cap_pointer);
-    debugf("        Interrupt Line: %x\n", pcidev->interrupt_line);
-    debugf("        Interrupt Pin: %x\n", pcidev->interrupt_pin);
-    debugf("        Min Grant: %x\n", pcidev->min_grant);
-    debugf("        Max Latency: %x\n", pcidev->max_latency);
+    kprintf("  Vendor: %x\n", header->vendor_id);
+    kprintf("  Device: %x\n", header->device_id);
+    kprintf("  Type: %x\n", header->header_type);
+    kprintf("  Status: %x\n", header->status);
+    kprintf("  Command: %x\n", header->command);
+    kprintf("  Class: %x\n", header->class_id);
+    kprintf("  Subclass: %x\n", header->subclass_id);
+    kprintf("  Prog IF: %x\n", header->prog_if);
+    kprintf("  Rev ID: %x\n", header->rev_id);
+    kprintf("  BIST: %x\n", header->bist);
+    kprintf("  Latency Timer: %x\n", header->latency_timer);
+    kprintf("  Cache Line Size: %x\n", header->cache_line_size);
+    kprintf("  BAR0: %x\n", pcidev->bars[0]);
+    kprintf("  BAR1: %x\n", pcidev->bars[1]);
+    kprintf("  BAR2: %x\n", pcidev->bars[2]);
+    kprintf("  BAR3: %x\n", pcidev->bars[3]);
+    kprintf("  BAR4: %x\n", pcidev->bars[4]);
+    kprintf("  BAR5: %x\n", pcidev->bars[5]);
+    kprintf("  Cardbus CIS Pointer: %x\n", pcidev->cardbus_cis_pointer);
+    kprintf("  Subsystem Vendor ID: %x\n", pcidev->subsystem_vendor_id);
+    kprintf("  Subsystem ID: %x\n", pcidev->subsystem_id);
+    kprintf("  Expansion ROM Base: %x\n", pcidev->expansion_rom_base);
+    kprintf("  Cap Pointer: %x\n", pcidev->cap_pointer);
+    kprintf("  Interrupt Line: %x\n", pcidev->interrupt_line);
+    kprintf("  Interrupt Pin: %x\n", pcidev->interrupt_pin);
+    kprintf("  Min Grant: %x\n", pcidev->min_grant);
+    kprintf("  Max Latency: %x\n", pcidev->max_latency);
 }
 
 // https://admin.pci-ids.ucw.cz/read/PD/

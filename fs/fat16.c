@@ -64,9 +64,7 @@ void fat16_init() {
     kmfree(mbr);
     kmfree(bpb);
 
-#ifdef __DEBUG__
     fat16_test();
-#endif
     return;
 }
 
@@ -99,7 +97,10 @@ void fat16_test() {
     debugf("rootdir entry: %x\n", fat16.rootdir_entry);
     debugf("rootdir size: %d\n", rootdir_size);
 
+#ifdef __DEBUG__
     fat16_dump_dir(rootdir, fat16.root_entries);
+#endif
+    kmfree(rootdir);
 }
 
 void fat16_dump_mbr(FAT16_MBR *mbr) {
@@ -144,7 +145,6 @@ void fat16_dump_bpb(FAT16_BPB *bpb) {
 }
 
 void fat16_dump_dir(FAT16_DIR_ENTRY *dir, uint32 entries) {
-    debugf("FAT16 DIR:\n");
     for (int i = 0; i < entries; i++) {
         if (dir[i].filename[0] == 0x00) {
             break;
@@ -162,10 +162,10 @@ void fat16_dump_dir(FAT16_DIR_ENTRY *dir, uint32 entries) {
                 filename[j + 11] = (char)lfn->name3[j];
             }
             filename[13] = '\0';
-            debugf("  LFN: %x\n", lfn->ord);
-            debugf("    filename: %s\n", filename);
-            debugf("    attr: %x\n", lfn->attr);
-            debugf("    checksum: %x\n", lfn->checksum);
+            kprintf("  LFN: %x\n", lfn->ord);
+            kprintf("    filename: %s\n", filename);
+            kprintf("    attr: %x\n", lfn->attr);
+            kprintf("    checksum: %x\n", lfn->checksum);
             continue;
         }
         char filename[12];
@@ -187,33 +187,33 @@ void fat16_dump_dir(FAT16_DIR_ENTRY *dir, uint32 entries) {
         uint8 a_month = (dir[i].adate & 0x01E0) >> 5;
         uint8 a_day = dir[i].adate & 0x001F;
 
-        debugf("  %s\n", filename);
-        debugf("    FileType: ");
+        kprintf("  %s\n", filename);
+        kprintf("    FileType: ");
         if (dir[i].attr & 0x01) {
-            debugf("Read-only ");
+            kprintf("Read-only ");
         }
         if (dir[i].attr & 0x02) {
-            debugf("Hidden ");
+            kprintf("Hidden ");
         }
         if (dir[i].attr & 0x04) {
-            debugf("System ");
+            kprintf("System ");
         }
         if (dir[i].attr & 0x08) {
-            debugf("VolumeID ");
+            kprintf("VolumeID ");
         }
         if (dir[i].attr & 0x10) {
-            debugf("Directory ");
+            kprintf("Directory ");
         }
         if (dir[i].attr & 0x20) {
-            debugf("Archive ");
+            kprintf("Archive ");
         }
-        debugf("(%x) \n", dir[i].attr);
-        debugf("    Cluster: %x\n", dir[i].cluster);
-        debugf("    Size: %d\n", dir[i].size);
-        debugf("    Create DateTime: %d-%d-%d %d:%d:%d\n", c_year, c_month,
-               c_day, c_hour, c_minute, c_second);
-        debugf("    Last Modify DateTime: %d-%d-%d %d:%d:%d\n", m_year, m_month,
-               m_day, m_hour, m_minute, m_second);
-        debugf("    Last Access Date: %d-%d-%d\n", a_year, a_month, a_day);
+        kprintf("(%x) \n", dir[i].attr);
+        kprintf("    Cluster: %x\n", dir[i].cluster);
+        kprintf("    Size: %d\n", dir[i].size);
+        kprintf("    Create DateTime: %d-%d-%d %d:%d:%d\n", c_year, c_month,
+                c_day, c_hour, c_minute, c_second);
+        kprintf("    Last Modify DateTime: %d-%d-%d %d:%d:%d\n", m_year,
+                m_month, m_day, m_hour, m_minute, m_second);
+        kprintf("    Last Access Date: %d-%d-%d\n", a_year, a_month, a_day);
     }
 }
