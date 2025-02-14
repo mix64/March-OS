@@ -8,13 +8,13 @@ void create_pte(pte_t *pte, uint64 flag);
 
 void vm_init() {
     pgdir = (uintptr *)pmalloc(PM_4K);
-    for (uintptr va = 0; va < (1ULL << MAX_PADDR_BITS); va += MiB(2)) {
+    for (uintptr va = 0; va < GiB(4); va += MiB(2)) {
         pte_t *r = walk_pgdir(va, TRUE, TRUE);
         if (r == NULL) {
             panic("vm_init: create page failed %x\n", va);
         }
     }
-    debugf("[vm] Mapped 0 - %d GiB\n", (1ULL << MAX_PADDR_BITS) / GiB(1ULL));
+    debugf("[vm] Mapped 0 - %d MiB\n", GiB(4) / MiB(1));
     scr3(pgdir);
 }
 
