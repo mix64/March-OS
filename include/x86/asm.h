@@ -35,6 +35,12 @@ static inline void cli() { asm volatile("cli"); }
 
 static inline void sti() { asm volatile("sti"); }
 
+static inline uintptr lcr2() {
+    uintptr addr;
+    asm volatile("movq %%cr2,%0" : "=r"(addr));
+    return addr;
+}
+
 static inline uintptr lcr3() {
     uintptr addr;
     asm volatile("movq %%cr3,%0" : "=r"(addr));

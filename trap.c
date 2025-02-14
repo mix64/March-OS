@@ -1,6 +1,7 @@
 #include <kernel.h>
 #include <trap.h>
 #include <x86/apic.h>
+#include <x86/asm.h>
 
 static uint64 ticks;  // 100Hz Timer Counter
 
@@ -8,6 +9,9 @@ void dump_tf(struct trapframe *tf);
 
 void trap(struct trapframe *tf) {
     switch (tf->trapno) {
+        case X86_EX_PF:
+            kprintf("#PF: CR2 = %x\n", lcr2());
+            break;
         case T_IRQ0 + IRQ_TIMER:
             ticks++;
             apic_eoi();

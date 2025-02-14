@@ -1,5 +1,8 @@
 #include <types.h>
 
+// x86 exception and interrupt constants.
+#define X86_EX_PF 14
+
 #define T_IRQ0 32
 #define IRQ_TIMER 0
 #define IRQ_ERROR 19
