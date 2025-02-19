@@ -21,46 +21,71 @@ void vm_init() {
 // create: create page if page not present
 // large: create 2MB page
 pte_t *walk_pgdir(uintptr va, bool create, bool large) {
+    /*
+     * 4-level page table
+     * PML4 -> PDPT -> PD -> PT
+     * 9-bit index for each level
+     * 4KB page: 12-bit offset
+     * 2MB page: 21-bit offset
+     */
+    uint64 flag = PG_P | PG_RW;
+    if (va >= USER_ADDR_START) {
+        flag |= PG_US;
+    }
+
+    // PML4
     pte_t *pml4 = (pte_t *)(ROUNDDOWN((uintptr)pgdir, KiB(4)));
     if ((pml4[PML4_IDX(va)] & PG_P) == 0) {
         if (!create) {
             return NULL;
         }
-        create_pte(&pml4[PML4_IDX(va)], PG_P | PG_RW);
+        pml4[PML4_IDX(va)] = (uintptr)pmalloc(PM_4K) | flag;
     }
+
+    // PDPT
     pte_t *pdpt = (pte_t *)(pml4[PML4_IDX(va)] & ~BIT64_MASK(12));
     if ((pdpt[PDPT_IDX(va)] & PG_P) == 0) {
         if (!create) {
             return NULL;
         }
-        create_pte(&pdpt[PDPT_IDX(va)], PG_P | PG_RW);
+        pdpt[PDPT_IDX(va)] = (uintptr)pmalloc(PM_4K) | flag;
     }
+
+    // PD
     pte_t *pd = (pte_t *)(pdpt[PDPT_IDX(va)] & ~BIT64_MASK(12));
     if ((pd[PD_IDX(va)] & PG_P) == 0) {
         if (!create) {
             return NULL;
         }
         if (large) {
-            pd[PD_IDX(va)] = ROUNDDOWN(va, MiB(2)) | PG_P | PG_RW | PG_PS;
+            // direct mapping for kernel space
+            if (va < USER_ADDR_START) {
+                pd[PD_IDX(va)] = ROUNDDOWN(va, MiB(2)) | flag | PG_PS;
+            } else {
+                pd[PD_IDX(va)] = (uintptr)pmalloc(PM_4K) | flag | PG_PS;
+            }
         } else {
-            create_pte(&pd[PD_IDX(va)], PG_P | PG_RW);
+            pd[PD_IDX(va)] = (uintptr)pmalloc(PM_4K) | flag;
         }
     }
     if (pd[PD_IDX(va)] & PG_PS) {
         return &pd[PD_IDX(va)];  // 2MB page
     }
+
+    // PT
     pte_t *pt = (pte_t *)(pd[PD_IDX(va)] & ~BIT64_MASK(12));
     if ((pt[PT_IDX(va)] & PG_P) == 0) {
         if (!create) {
             return NULL;
         }
-        pt[PT_IDX(va)] = ROUNDDOWN(va, KiB(4)) | PG_P | PG_RW;
+        // direct mapping for kernel space
+        if (va < USER_ADDR_START) {
+            pt[PT_IDX(va)] = ROUNDDOWN(va, KiB(4)) | flag;
+        } else {
+            pt[PT_IDX(va)] = (uintptr)pmalloc(PM_4K) | flag;
+        }
     }
     return &pt[PT_IDX(va)];  // 4KB page
 }
 
 void setflag(pte_t *pte, uint64 flag) { *pte |= flag; }
-
-void create_pte(pte_t *pte, uint64 flag) {
-    *pte = (uintptr)pmalloc(PM_4K) | flag;
-}
