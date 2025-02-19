@@ -42,12 +42,12 @@ void dump_tf(struct trapframe *tf) {
     kprintf("    r10 = %x\n", tf->r10);
     kprintf("     r9 = %x\n", tf->r9);
     kprintf("     r8 = %x\n", tf->r8);
+    kprintf("    rbp = %x\n", tf->rbp);
     kprintf("    rdi = %x\n", tf->rdi);
     kprintf("    rsi = %x\n", tf->rsi);
-    kprintf("    rbp = %x\n", tf->rbp);
-    kprintf("    rbx = %x\n", tf->rbx);
     kprintf("    rdx = %x\n", tf->rdx);
     kprintf("    rcx = %x\n", tf->rcx);
+    kprintf("    rbx = %x\n", tf->rbx);
     kprintf("    rax = %x\n", tf->rax);
     kprintf("    err = %x\n", tf->err);
     kprintf("    rip = %x\n", tf->rip);

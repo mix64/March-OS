@@ -18,12 +18,12 @@ struct trapframe {
     uint64 r10;
     uint64 r9;
     uint64 r8;
+    uint64 rbp;
     uint64 rdi;
     uint64 rsi;
-    uint64 rbp;
-    uint64 rbx;
     uint64 rdx;
     uint64 rcx;
+    uint64 rbx;
     uint64 rax;
     uint64 trapno;
 
