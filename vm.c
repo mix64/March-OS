@@ -89,3 +89,35 @@ pte_t *walk_pgdir(uintptr va, bool create, bool large) {
 }
 
 void setflag(pte_t *pte, uint64 flag) { *pte |= flag; }
+
+void switch_uvm(pte_t upml4) {
+    pte_t *pml4 = (pte_t *)(ROUNDDOWN((uintptr)pgdir, KiB(4)));
+    pml4[USER_PML4_IDX] = upml4;
+}
+
+void free_uvm(pte_t upml4) {
+    pte_t *pml4 = (pte_t *)(ROUNDDOWN((uintptr)pgdir, KiB(4)));
+    if ((pml4[USER_PML4_IDX] & PG_P) == 0) {
+        panic("free_uvm: pml4[2] not present\n");
+    }
+    pte_t *pdpt = (pte_t *)(pml4[USER_PML4_IDX] & ~BIT64_MASK(12));
+    for (uint64 i = 0; i < 512; i++) {
+        if (pdpt[i] & PG_P) {
+            pte_t *pd = (pte_t *)(pdpt[i] & ~BIT64_MASK(12));
+            for (uint64 j = 0; j < 512; j++) {
+                if (pd[j] & PG_P) {
+                    pte_t *pt = (pte_t *)(pd[j] & ~BIT64_MASK(12));
+                    for (uint64 k = 0; k < 512; k++) {
+                        if (pt[k] & PG_P) {
+                            pmfree((void *)(pt[k] & ~BIT64_MASK(12)), PM_4K);
+                        }
+                    }
+                    pmfree(pt, PM_4K);
+                }
+            }
+            pmfree(pd, PM_4K);
+        }
+    }
+    pmfree(pdpt, PM_4K);
+    pml4[USER_PML4_IDX] = 0;
+}
