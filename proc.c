@@ -9,8 +9,10 @@
 list_t proc_list;
 uint64 nextpid;
 
-extern void trapret();
-extern void swtch(context_t **old, context_t *new);
+#define KSTACK_SIZE KiB(1)
+
+extern void context_switch(context_t **old, context_t *new);
+extern void _sysret();
 
 char initcode[] = {
     // 40000000 <start>:
@@ -28,26 +30,45 @@ char initcode[] = {
 };
 
 void uinit() {
+    proc_t dummy;
+    context_t dummy_context;
+    dummy.context = &dummy_context;
+
     proc_t *init = palloc();
     init->stat = RUN;
     switch_uvm(init->upml4);
+    set_sysenter_stack(init->kstack + KSTACK_SIZE);
     memcpy((void *)USER_ADDR_START, initcode, sizeof(initcode));
+    init->context->rcx = USER_ADDR_START;
+    init->context->rdx = USER_ADDR_START + KiB(4);
+    context_switch(&dummy.context, init->context);
+}
+
+void switch_proc(proc_t *new, proc_t *old) {
+    if (new == NULL || old == NULL) {
+        panic("switch_proc: new/old is NULL\n");
+    }
+    if (old->stat != RUN || new->stat != READY) {
+        panic("switch_proc: stat is invalid\n");
+    }
+    old->stat = READY;
+    new->stat = RUN;
+    switch_uvm(new->upml4);
+    set_sysenter_stack(new->kstack + KSTACK_SIZE);
+    context_switch(&old->context, new->context);
 }
 
 proc_t *palloc() {
     proc_t *p = (proc_t *)kmalloc(sizeof(proc_t));
     p->stat = SET;
     p->pid = nextpid++;
-    p->kstack = kmalloc(KiB(1));
-    uint64 sp = (uint64)p->kstack + KiB(1);
-    sp -= sizeof(struct trapframe);
-    p->tf = (struct trapframe *)sp;
+    p->kstack = kmalloc(KSTACK_SIZE);
+    uint64 sp = (uint64)p->kstack + KSTACK_SIZE;
     sp -= sizeof(context_t);
     p->context = (context_t *)sp;
+    p->context->rip = (uint64)_sysret;
     p->wchan = NULL;
     p->upml4 = (uintptr)pmalloc(PM_4K) | PG_P | PG_RW | PG_US;
-
-    p->context->rip = (uint64)trapret;
 
     list_push(&proc_list, p);
     return p;

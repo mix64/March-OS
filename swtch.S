@@ -1,14 +1,17 @@
 # Context switch
 #
-#   void swtch(context_t **old, context_t *new, uint64 *pgdir);
+#   void context_switch(context_t **old, context_t *new);
 # 
-# Save the current registers on the stack,
-# creating a struct context, and save its address in *old.
-# Switch stacks to new and pop previously-saved registers.
+# Save the current callee-saved registers in old,
+# and restore previously-saved registers.
 
-.globl swtch
-swtch:
-    # rdi = old, rsi = new, rdx = pgdir
+.globl context_switch
+context_switch:
+    # rdi = old, rsi = new
+
+    # Save for new process
+    pushq %rdx # ring3 rip
+    pushq %rcx # ring3 stack
 
     # Save old callee-saved registers
     pushq %rbx
@@ -29,4 +32,8 @@ swtch:
     popq %r12
     popq %rbp
     popq %rbx
+
+    # Restore for new process
+    popq %rcx
+    popq %rdx
     ret
