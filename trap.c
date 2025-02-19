@@ -1,4 +1,5 @@
 #include <kernel.h>
+#include <mm.h>
 #include <trap.h>
 #include <x86/apic.h>
 #include <x86/asm.h>
@@ -10,7 +11,10 @@ void dump_tf(struct trapframe *tf);
 void trap(struct trapframe *tf) {
     switch (tf->trapno) {
         case X86_EX_PF:
-            kprintf("#PF: CR2 = %x\n", lcr2());
+            debugf("#PF: CR2 = %x\n", lcr2());
+            if (walk_pgdir(lcr2(), TRUE, FALSE) == NULL) {
+                panic("walk_pgdir failed\n");
+            }
             break;
         case T_IRQ0 + IRQ_TIMER:
             ticks++;
@@ -20,8 +24,8 @@ void trap(struct trapframe *tf) {
             }
             break;
         default:
-            kprintf("unknown interrupt\n");
             dump_tf(tf);
+            panic("unknown interrupt\n");
             break;
     }
     return;
