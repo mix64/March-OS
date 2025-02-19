@@ -109,3 +109,5 @@ struct taskstate {
 
 // x86.c
 void idt_init();
+uint64 read_msr(uint32 msr);
+void write_msr(uint32 msr, uint64 val);

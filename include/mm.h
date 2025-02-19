@@ -17,6 +17,9 @@
 #define PG_PS (1ULL << 7)    // Page size (1=PageFrame, 0=PagePointer)
 #define PD_PAT (1ULL << 12)  // Page Attribute Table
 
+#define USER_ADDR_START 0x10000000000
+#define USER_PML4_IDX (USER_ADDR_START >> 39)
+
 // init.c
 void mm_init();
 
@@ -33,6 +36,7 @@ void pmfree(void *addr, enum PMMAP size);
 // vm.c
 pte_t *walk_pgdir(uintptr va, bool create, bool large);
 void setflag(pte_t *pte, uint64 flag);
+void switch_uvm(pte_t upml4);
 
 // slab.c
 void *kmalloc(uint64 size);

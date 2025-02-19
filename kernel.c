@@ -3,6 +3,7 @@
 #include <kernel.h>
 #include <mm.h>
 #include <pci.h>
+#include <proc.h>
 #include <system.h>
 #include <x86.h>
 #include <x86/apic.h>
@@ -17,6 +18,7 @@ void kernel_main() {
     apic_init();
     pci_scan();
     fs_init();
+    uinit();
     sti();
     while (1);
 }
