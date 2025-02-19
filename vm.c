@@ -2,12 +2,12 @@
 #include <mm.h>
 #include <x86/asm.h>
 
-static uintptr *pgdir;
+static pte_t *pgdir;
 
 void create_pte(pte_t *pte, uint64 flag);
 
 void vm_init() {
-    pgdir = (uintptr *)pmalloc(PM_4K);
+    pgdir = (pte_t *)pmalloc(PM_4K);
     for (uintptr va = 0; va < GiB(4); va += MiB(2)) {
         pte_t *r = walk_pgdir(va, TRUE, TRUE);
         if (r == NULL) {
