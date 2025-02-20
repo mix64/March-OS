@@ -39,8 +39,8 @@ void uinit() {
     switch_uvm(init->upml4);
     set_sysenter_stack(init->kstack + KSTACK_SIZE);
     memcpy((void *)USER_ADDR_START, initcode, sizeof(initcode));
-    init->context->rcx = USER_ADDR_START;
-    init->context->rdx = USER_ADDR_START + KiB(4);
+    init->context->r15 = USER_ADDR_START;
+    init->context->r14 = USER_ADDR_START + KiB(4);
     context_switch(&dummy.context, init->context);
 }
 

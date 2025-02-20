@@ -9,10 +9,6 @@
 context_switch:
     # rdi = old, rsi = new
 
-    # Save for new process
-    pushq %rdx # ring3 rip
-    pushq %rcx # ring3 stack
-
     # Save old callee-saved registers
     pushq %rbx
     pushq %rbp
@@ -33,7 +29,4 @@ context_switch:
     popq %rbp
     popq %rbx
 
-    # Restore for new process
-    popq %rcx
-    popq %rdx
     ret
