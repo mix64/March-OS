@@ -5,7 +5,8 @@
 _syscall:
     movq %rcx, %r15 # ring3 rip
     movq %rsp, %r14 # ring3 stack
-    movq %r11, %r13 # ring3 rflags
+    movq %rax, %r13 # save syscall number
+    movq %rdx, %r12 # save arg3
 
     xorq %rcx, %rcx
     xorq %rax, %rax
@@ -15,7 +16,10 @@ _syscall:
     movq %rax, %rsp
     pushq %r15 # save ring3 rip
     pushq %r14 # save ring3 stack
-    pushq %r13 # save ring3 rflags
+    pushq %r11 # save ring3 rflags
+    movq %r12, %rdx # restore arg3
+    movq %r13, %rax # restore syscall number
+    movq %r10, %rcx # restore arg4
     call syscall
     popq %r14
     popq %r15
