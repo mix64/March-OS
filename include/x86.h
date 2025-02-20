@@ -6,8 +6,9 @@ enum {
     GDT_SEG_NULL,
     GDT_SEG_KCODE,
     GDT_SEG_KDATA,
-    GDT_SEG_UCODE,
+    GDT_SEG_UNULL,
     GDT_SEG_UDATA,
+    GDT_SEG_UCODE,
     GDT_SEG_TSS,
 
     GDT_SEG_COUNT,
@@ -15,6 +16,7 @@ enum {
 
 #define GDT_KCODE (GDT_SEG_KCODE << 3)
 #define GDT_KDATA (GDT_SEG_KDATA << 3)
+#define GDT_UNULL (GDT_SEG_UNULL << 3)
 #define GDT_UCODE (GDT_SEG_UCODE << 3)
 #define GDT_UDATA (GDT_SEG_UDATA << 3)
 #define GDT_TSS (GDT_SEG_TSS << 3)

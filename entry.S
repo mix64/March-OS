@@ -75,8 +75,9 @@ gdt:
     .quad 0x0000000000000000 /* Null descriptor */
     .quad 0x00af9a000000ffff /* Kernel CS64: base=0, limit=0xfffff, Access=0x9A, Flags=0xA  */
     .quad 0x00cf92000000ffff /* Kernel DS: base=0, limit=0xfffff, Access=0x92, Flags=0xC  */
-    .quad 0x00affa000000ffff /* User CS64: base=0, limit=0xfffff, Access=0xFA, Flags=0xA  */
+    .quad 0x0000000000000000 /* Null descriptor */
     .quad 0x00cff2000000ffff /* User DS: base=0, limit=0xfffff, Access=0xF2, Flags=0xC  */
+    .quad 0x00affa000000ffff /* User CS64: base=0, limit=0xfffff, Access=0xFA, Flags=0xA  */
     .quad 0x0000000000000000 /* Task State Segment [127:64] */
     .quad 0x0000000000000000 /* Task State Segment [63:0] */
 
