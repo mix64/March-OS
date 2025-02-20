@@ -11,6 +11,8 @@
 
 System SYSTEM;
 
+extern void syscall_init();
+
 void kernel_main() {
     kprintf("Hello, Kernel!\n");
     mm_init();
@@ -18,6 +20,7 @@ void kernel_main() {
     apic_init();
     pci_scan();
     fs_init();
+    syscall_init();
     uinit();
     sti();
     while (1);
