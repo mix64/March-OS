@@ -6,3 +6,4 @@ root/
 *.efi
 *.pdf
 *.log
+*.asm
