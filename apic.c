@@ -46,9 +46,9 @@
 
 volatile static uintptr lapic;
 
-int check_apic() { return (CPUID_0001_RDX & CPUID_0001_RDX_APIC); }
+int check_apic() { return (CPUID_0001_EDX & CPUID_0001_EDX_APIC); }
 
-int check_x2apic() { return (CPUID_0001_RCX & CPUID_0001_RCX_X2APIC); }
+int check_x2apic() { return (CPUID_0001_ECX & CPUID_0001_ECX_X2APIC); }
 
 #define PIC1 0x20 /* IO base address for master PIC */
 #define PIC2 0xA0 /* IO base address for slave PIC */
