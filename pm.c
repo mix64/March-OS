@@ -3,6 +3,7 @@
 #include <mm.h>
 #include <system.h>
 #include <x86/asm.h>
+#include <x86/cpuid.h>
 
 uintptr *pmmap[PMMAP_NUM];
 extern char kernel_end[];
@@ -82,8 +83,9 @@ uint8 _pm_size_to_idx(enum PMMAP size) {
 }
 
 void pm_init() {
-    uint64 mask_lo12 = (BIT64_MASK(MAX_PADDR_BITS) & ~BIT64_MASK(12));
-    uint64 mask_lo21 = (BIT64_MASK(MAX_PADDR_BITS) & ~BIT64_MASK(21));
+    uint64 max_paddr = CPUID_8000_0008_EAX & 0xFF;
+    uint64 mask_lo12 = (BIT64_MASK(max_paddr) & ~BIT64_MASK(12));
+    uint64 mask_lo21 = (BIT64_MASK(max_paddr) & ~BIT64_MASK(21));
     uint64 allocatable_max = 0;
     uint64 cr3 = lcr3();
 
