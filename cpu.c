@@ -4,16 +4,16 @@
 void cpu_init() {
     // check syscall/sysret
     if (CPUID_8000_0001_EDX & CPUID_8000_0001_EDX_SYSCALL) {
-        kprintf("[cpu] SYSCALL/SYSRET is supported\n");
+        kprintf("[cpuid] SYSCALL/SYSRET is supported\n");
     } else {
-        panic("[cpu] SYSCALL/SYSRET is not supported\n");
+        panic("[cpuid] SYSCALL/SYSRET is not supported\n");
     }
 
     // check 1GB page
     if (CPUID_8000_0001_EDX & CPUID_8000_0001_EDX_PDPE1GB) {
-        kprintf("[cpu] 1GB page is supported\n");
+        kprintf("[cpuid] 1GB page is supported\n");
     } else {
-        kprintf("[cpu] 1GB page is not supported\n");
+        kprintf("[cpuid] 1GB page is not supported\n");
     }
 
     // check processor brand
@@ -24,10 +24,10 @@ void cpu_init() {
             break;
         }
     }
-    kprintf("[cpu] processor brand: %s\n", (char*)processor_brand);
+    kprintf("[cpuid] processor brand: %s\n", (char*)processor_brand);
 
     // check processor features
-    kprintf("[cpu] features: ");
+    kprintf("[cpuid] features: ");
     {
         uint32 edx = CPUID_0001_EDX;
         if (edx & CPUID_0001_EDX_FPU) kprintf("FPU ");
