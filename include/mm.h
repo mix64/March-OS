@@ -5,6 +5,9 @@
 #define PAGE_SIZE KiB(4ULL)
 #define USER_ADDR_START 0x10000000000
 
+// kernel.ls
+extern char kernel_end[];
+
 // init.c
 void mm_init();
 
@@ -17,6 +20,7 @@ enum PMMAP {
 };
 void *pmalloc(enum PMMAP size);
 void pmfree(void *addr, enum PMMAP size);
+void pm_dump();
 
 // vm.c
 pte_t *walk_pgdir(uintptr va, bool create, bool large);
