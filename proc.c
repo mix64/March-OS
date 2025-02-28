@@ -5,6 +5,7 @@
 #include <proc.h>
 #include <trap.h>
 #include <x86/asm.h>
+#include <x86/mm.h>
 
 list_t proc_list;
 proc_t *curproc;
