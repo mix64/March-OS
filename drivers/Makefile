@@ -1,4 +1,4 @@
-OBJS = ide.o
+OBJS = 
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -I ../include $<

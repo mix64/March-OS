@@ -2,7 +2,7 @@
 #include <x86/asm.h>
 
 void memset(void *addr, uint8 data, uint64 count) {
-#ifdef __x64__
+#ifdef __x86__
     stosb(addr, data, count);
 #else
     for (uint64 i = 0; i < count; i++) {
@@ -12,7 +12,7 @@ void memset(void *addr, uint8 data, uint64 count) {
 }
 
 void memcpy(void *dest, void *src, uint64 count) {
-#ifdef __x64__
+#ifdef __x86__
     movsb(dest, src, count);
 #else
     for (uint64 i = 0; i < count; i++) {

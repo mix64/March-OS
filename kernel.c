@@ -12,9 +12,11 @@
 System SYSTEM;
 
 extern void syscall_init();
+extern void cpu_init();
 
 void kernel_main() {
     kprintf("Hello, Kernel!\n");
+    cpu_init();
     mm_init();
     idt_init();
     apic_init();

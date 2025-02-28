@@ -51,16 +51,6 @@ static inline void scr3(void *addr) {
     asm volatile("movq %0,%%cr3" : : "r"(addr));
 }
 
-static inline uint64 cpuid(uint64 code) {
-    uint64 rax, rbx, rcx, rdx;
-    asm volatile("cpuid"
-                 : "=a"(rax), "=b"(rbx), "=c"(rcx), "=d"(rdx)
-                 : "a"(code));
-    return rax;
-}
-
-#define MAX_PADDR_BITS (cpuid(0x80000008) & 0xFF)
-
 static inline void stosb(void *addr, uint64 data, uint64 cnt) {
     asm volatile("cld; rep stosb"
                  : "=D"(addr), "=c"(cnt)
