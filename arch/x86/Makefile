@@ -1,4 +1,4 @@
-OBJS = ide.o
+OBJS = cpu.o ide.o
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -I $(BUILDROOT)/include $<
