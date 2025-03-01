@@ -31,7 +31,7 @@ boot.efi:
 	make -C boot
 	mv boot/boot.efi root/EFI/BOOT/BOOTX64.EFI
 
-kernel.bin: apic.o entry.o kernel.o serial.o pm.o pci.o vectors.o trap.o vm.o x86.o list.o string.o syscall.o sys.o swtch.o proc.o $(SUBDIR:=.o)
+kernel.bin: kernel.o serial.o pm.o pci.o vectors.o trap.o vm.o x86.o list.o string.o syscall.o sys.o swtch.o proc.o $(SUBDIR:=.o)
 	$(LD) -T kernel.ls -o root/kernel.bin $^
 	rm $(SUBDIR:=.o)
 
