@@ -5,11 +5,11 @@ extern int sys_spawn(char *filename);
 
 void syscall(uint64 arg1, uint64 arg2, uint64 arg3, uint64 arg4, uint64 arg5,
              uint64 arg6, uint64 syscall_num) {
-    debugf("#SYSCALL: %d\n", syscall_num);
-    debugf("    args: %x %x %x %x %x %x\n", arg1, arg2, arg3, arg4, arg5, arg6);
+    debugf("#SYSCALL: ");
 
     switch (syscall_num) {
         case SYS_spawn:
+            debugf("sys_spawn(\"%s\")\n", (char *)arg1);
             sys_spawn((char *)arg1);
             break;
         case SYS_exit:
