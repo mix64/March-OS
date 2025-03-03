@@ -1,33 +1,43 @@
 #include <ide.h>
 #include <kernel.h>
 #include <x86/asm.h>
+#include <x86/ata.h>
 
-#define IDE_COMMAND 0x1F7
-#define ATA_SR_BSY 0x80   // Busy
-#define ATA_SR_DRDY 0x40  // Drive ready
-#define ATA_SR_DF 0x20    // Drive write fault
-#define ATA_SR_DSC 0x10   // Drive seek complete
-#define ATA_SR_DRQ 0x08   // Data request ready
-#define ATA_SR_CORR 0x04  // Corrected data
-#define ATA_SR_IDX 0x02   // Index
-#define ATA_SR_ERR 0x01   // Error
+void ide_wait_ready() {
+    uint64 retries = 10000;
+    while (retries--) {
+        if ((inb(IDE_COMMAND) & (ATA_SR_BSY | ATA_SR_DRDY)) == ATA_SR_DRDY) {
+            return;
+        }
+    }
+    panic("IDE: Wait Ready Timeout\n");
+}
 
-void ide_wait() {
-    while ((inb(IDE_COMMAND) & (ATA_SR_BSY | ATA_SR_DRDY)) != ATA_SR_DRDY);
+void ide_wait_data() {
+    uint64 retries = 10000;
+    while (retries--) {
+        if (inb(IDE_COMMAND) & ATA_SR_DRQ) {
+            return;
+        }
+    }
+    panic("IDE: Wait Data Timeout\n");
 }
 
 void ide_read_seq(uint32 sector, void *buf, uint32 count) {
+    ide_wait_ready();
     outb(0x1F6, 0xE0 | ((sector >> 24) & 0xF));
     outb(0x1F2, count);
     outb(0x1F3, sector & 0xFF);
     outb(0x1F4, (sector >> 8) & 0xFF);
     outb(0x1F5, (sector >> 16) & 0xFF);
-    outb(0x1F7, 0x20);
+    outb(IDE_COMMAND, ATA_CMD_READ_PIO);
 
-    while (!(inb(0x1F7) & 0x08));
-    for (int i = 0; i < 512 * count; i += 4) {
-        *(uint32 *)buf = inl(0x1F0);
-        buf += 4;
+    for (int i = 0; i < count; i++) {
+        ide_wait_data();
+        for (int j = 0; j < 512; j += 4) {
+            *(uint32 *)buf = inl(0x1F0);
+            buf += 4;
+        }
     }
 }
 
