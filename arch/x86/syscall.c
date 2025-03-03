@@ -6,7 +6,6 @@
 
 extern void _syscall();
 
-// TODO: support syscall,sysret
 void syscall_init() {
     debugf("[sys] start setup\n");
     write_msr(IA32_EFER, read_msr(IA32_EFER) | IA32_EFER_SCE);
