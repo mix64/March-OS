@@ -16,4 +16,4 @@ exit:
     syscall
 
 init:
-    .string "/bin/shell\0"
+    .string "/BIN/SHELL\0"
