@@ -1,7 +1,7 @@
 #include <kernel.h>
 #include <proc.h>
 #include <syscall.h>
-#include <x86.h>
+#include <x86/desc.h>
 #include <x86/msr.h>
 
 extern void _syscall();

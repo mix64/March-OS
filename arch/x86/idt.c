@@ -1,7 +1,7 @@
 #include <kernel.h>
 #include <mm.h>
-#include <x86.h>
 #include <x86/asm.h>
+#include <x86/desc.h>
 
 struct gatedesc idt[256];
 struct taskstate ts;
