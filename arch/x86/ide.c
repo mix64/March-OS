@@ -1,4 +1,5 @@
 #include <ide.h>
+#include <kernel.h>
 #include <x86/asm.h>
 
 #define IDE_COMMAND 0x1F7
@@ -15,24 +16,19 @@ void ide_wait() {
     while ((inb(IDE_COMMAND) & (ATA_SR_BSY | ATA_SR_DRDY)) != ATA_SR_DRDY);
 }
 
-void ide_read(uint32 sector, void *buf) {
+void ide_read_seq(uint32 sector, void *buf, uint32 count) {
     outb(0x1F6, 0xE0 | ((sector >> 24) & 0xF));
-    outb(0x1F2, 1);
+    outb(0x1F2, count);
     outb(0x1F3, sector & 0xFF);
     outb(0x1F4, (sector >> 8) & 0xFF);
     outb(0x1F5, (sector >> 16) & 0xFF);
     outb(0x1F7, 0x20);
 
     while (!(inb(0x1F7) & 0x08));
-    for (int i = 0; i < 512 / 4; i++) {
-        uint32 data = inl(0x1F0);
-        *(uint32 *)buf = data;
+    for (int i = 0; i < 512 * count; i += 4) {
+        *(uint32 *)buf = inl(0x1F0);
         buf += 4;
     }
 }
 
-void ide_read_seq(uint32 sector, void *buf, uint32 count) {
-    for (uint32 i = 0; i < count; i++) {
-        ide_read(sector + i, buf + i * 512);
-    }
-}
+void ide_read(uint32 sector, void *buf) { ide_read_seq(sector, buf, 1); }
