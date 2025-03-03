@@ -5,6 +5,7 @@
 #include <proc.h>
 #include <trap.h>
 #include <x86/asm.h>
+#include <x86/mm.h>
 
 list_t proc_list;
 proc_t *curproc;
@@ -22,7 +23,7 @@ char initcode[] = {
     0x48, 0x31, 0xf6,                          // xor %rsi, %rsi
     0x48, 0xc7, 0xc0, 0xe8, 0x03, 0x00, 0x00,  // mov $0x3e8, %rax
     0x0f, 0x05,                                // syscall
-                                               // 0000010000000016 <exit>:
+    // 0000010000000016 <exit>:
     0x48, 0xc7, 0xc7, 0x01, 0x00, 0x00, 0x00,  // mov $0x1, %rdi
     0x48, 0xc7, 0xc0, 0x3c, 0x00, 0x00, 0x00,  // mov $0x3c, %rax
     0x0f, 0x05,                                // syscall

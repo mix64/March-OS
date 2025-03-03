@@ -108,8 +108,3 @@ struct taskstate {
     // 16-bit offset from the base of the TSS to the I/O Permission Bit Map.
     uint64 iomb : 16;
 };
-
-// x86.c
-void idt_init();
-uint64 read_msr(uint32 msr);
-void write_msr(uint32 msr, uint64 val);

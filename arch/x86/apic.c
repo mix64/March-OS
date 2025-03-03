@@ -3,6 +3,8 @@
 #include <trap.h>
 #include <x86/apic.h>
 #include <x86/asm.h>
+#include <x86/cpuid.h>
+#include <x86/msr.h>
 
 /*
  SDM Vol.3B
@@ -10,14 +12,6 @@
 
  https://wiki.osdev.org/APIC
 */
-
-#define CPUID_FEAT_RDX_APIC (1 << 9)
-#define CPUID_FEAT_RCX_X2APIC (1 << 21)
-
-/* Figure 12-5. IA32_APIC_BASE MSR */
-#define IA32_APIC_BASE_MSR 0x1B
-#define IA32_APIC_BASE_MSR_BSP (1 << 8)
-#define IA32_APIC_BASE_MSR_ENABLE (1 << 11)
 
 #define APIC_ID 0x20  /* Local APIC ID Register */
 #define APIC_VER 0x30 /* Local APIC Version Register */
@@ -52,23 +46,9 @@
 
 volatile static uintptr lapic;
 
-int check_apic() {
-    uint64 rax, rbx, rcx, rdx;
-    rax = 1;
-    asm volatile("cpuid"
-                 : "=a"(rax), "=b"(rbx), "=c"(rcx), "=d"(rdx)
-                 : "a"(rax));
-    return (rdx & CPUID_FEAT_RDX_APIC);
-}
+int check_apic() { return (CPUID_0001_EDX & CPUID_0001_EDX_APIC); }
 
-int check_x2apic() {
-    uint64 rax, rbx, rcx, rdx;
-    rax = 1;
-    asm volatile("cpuid"
-                 : "=a"(rax), "=b"(rbx), "=c"(rcx), "=d"(rdx)
-                 : "a"(rax));
-    return (rcx & CPUID_FEAT_RCX_X2APIC);
-}
+int check_x2apic() { return (CPUID_0001_ECX & CPUID_0001_ECX_X2APIC); }
 
 #define PIC1 0x20 /* IO base address for master PIC */
 #define PIC2 0xA0 /* IO base address for slave PIC */

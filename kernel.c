@@ -5,16 +5,19 @@
 #include <pci.h>
 #include <proc.h>
 #include <system.h>
-#include <x86.h>
 #include <x86/apic.h>
 #include <x86/asm.h>
 
 System SYSTEM;
 
 extern void syscall_init();
+extern void cpu_init();
+extern void serial_init();
+extern void idt_init();
 
 void kernel_main() {
     kprintf("Hello, Kernel!\n");
+    cpu_init();
     mm_init();
     idt_init();
     apic_init();
@@ -43,6 +46,6 @@ void kernel_stub(BootInfo *bi) {
     SYSTEM.screen.hr = bi->screen.hr;
     SYSTEM.screen.vr = bi->screen.vr;
     // clear_screen();
-    init_serial();
+    serial_init();
     kernel_main();
 }
