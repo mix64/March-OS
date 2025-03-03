@@ -67,11 +67,3 @@ void set_idt_entry(uint8 idx, uint64 offset) {
 void restore_idt_entry(uint8 idx) {
     idt_entry(&idt[idx], GDT_KCODE, vectors[idx], 0, 0);
 }
-
-uint64 read_msr(uint32 msr) {
-    uint32 lo, hi;
-    rdmsr(msr, &lo, &hi);
-    return lo | ((uint64)hi << 32);
-}
-
-void write_msr(uint32 msr, uint64 val) { wrmsr(msr, val, val >> 32); }

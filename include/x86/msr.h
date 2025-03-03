@@ -17,3 +17,6 @@
 
 #define IA32_EFER 0xC0000080
 #define IA32_EFER_SCE 1  // System Call Extensions
+
+uint64 read_msr(uint32 msr);
+void write_msr(uint32 msr, uint64 val);
