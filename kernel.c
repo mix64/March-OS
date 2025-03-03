@@ -13,6 +13,7 @@ System SYSTEM;
 
 extern void syscall_init();
 extern void cpu_init();
+extern void serial_init();
 
 void kernel_main() {
     kprintf("Hello, Kernel!\n");
@@ -45,6 +46,6 @@ void kernel_stub(BootInfo *bi) {
     SYSTEM.screen.hr = bi->screen.hr;
     SYSTEM.screen.vr = bi->screen.vr;
     // clear_screen();
-    init_serial();
+    serial_init();
     kernel_main();
 }

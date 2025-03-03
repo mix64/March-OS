@@ -1,7 +1,6 @@
 #pragma once
 #include <types.h>
 
-int init_serial();
 void kprint(char *str);
 void _kprintf(char *fmt, uint8 argc, uintptr *argv);
 

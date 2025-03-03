@@ -1,4 +1,4 @@
-OBJS = apic.o cpu.o entry.o ide.o pm.o
+OBJS = apic.o cpu.o entry.o ide.o pm.o serial.o
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -I $(BUILDROOT)/include $<
