@@ -20,7 +20,9 @@ _syscall:
     movq %r12, %rdx # restore arg3
     movq %r13, %rax # restore syscall number
     movq %r10, %rcx # restore arg4
+    pushq %rax # arg7
     call syscall
+    addq $8, %rsp # pop arg7
     popq %r14
     popq %r15
     popq %r13

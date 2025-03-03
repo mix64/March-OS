@@ -13,7 +13,7 @@ CFLAGS += -fno-pie -nopie
 endif
 
 CFLAGS += -D__DEBUG__
-SUBDIR := arch fs mm
+SUBDIR := arch fs mm syscall
 ifeq ($(ARCH), x86)
 CFLAGS += -D__x86__
 endif

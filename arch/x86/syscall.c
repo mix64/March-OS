@@ -31,24 +31,3 @@ void set_sysenter_stack(void *kstack) {
     write_msr(IA32_SYSENTER_ESP, (uint64)kstack);
     debugf("[sys] IA32_SYSENTER_ESP: %x\n", read_msr(IA32_SYSENTER_ESP));
 }
-
-void syscall(uint64 arg1, uint64 arg2, uint64 arg3, uint64 arg4, uint64 arg5,
-             uint64 arg6) {
-    uint64 num;
-    __asm__ volatile("movq %%rax, %0" : "=r"(num));
-
-    kprintf("#SYSCALL %d\n", num);
-    kprintf("args: %x %x %x %x %x %x\n", arg1, arg2, arg3, arg4, arg5, arg6);
-    switch (num) {
-        case SYS_spawn:
-            kprintf("SYS_spawn\n");
-            break;
-        case SYS_exit:
-            kprintf("SYS_exit\n");
-            break;
-        default:
-            kprintf("unknown syscall %d\n", num);
-            break;
-    }
-    while (1);
-}
