@@ -101,4 +101,6 @@ typedef struct __attribute__((packed)) {
     short name3[2];
 } FAT16_LFN_ENTRY;
 
-void fat16_init();
+uint16 fat16_find_cluster(char *filename, uint16 dir_cluster);
+uint16 fat16_next_cluster(uint16 cluster);
+void fat16_read_cluster(uint16 cluster, char *buf);

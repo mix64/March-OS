@@ -7,9 +7,7 @@
 void fat16_dump_mbr(FAT16_MBR *mbr);
 void fat16_dump_bpb(FAT16_BPB *bpb);
 void fat16_dump_dir(FAT16_DIR_ENTRY *dir, uint32 entries);
-void fat16_read_cluster(uint16 cluster, char *buf);
-uint16 fat16_next_cluster(uint16 cluster);
-void fat16_test();
+void fat16_read_rootdir(FAT16_DIR_ENTRY *rootdir);
 
 static FAT16 fat16;
 
@@ -63,17 +61,45 @@ void fat16_init() {
 
     kmfree(mbr);
     kmfree(bpb);
-
-    fat16_test();
     return;
 }
 
-void fat16_read_cluster(uint16 cluster, char *buf) {
-    for (int i = 0; i < fat16.sector_per_cluster; i++) {
-        ide_read(
-            fat16.data_entry + (cluster - 2) * fat16.sector_per_cluster + i,
-            buf + fat16.sector_size * i);
+uint16 fat16_find_cluster(char *filename, uint16 dir_cluster) {
+    FAT16_DIR_ENTRY *dir;
+    uint16 entries;
+    if (dir_cluster == 0) {
+        entries = fat16.root_entries;
+        dir = (FAT16_DIR_ENTRY *)kmalloc(sizeof(FAT16_DIR_ENTRY) * entries);
+        fat16_read_rootdir(dir);
+    } else {
+        entries = fat16.cluster_size / sizeof(FAT16_DIR_ENTRY);
+        dir = (FAT16_DIR_ENTRY *)kmalloc(fat16.cluster_size);
+        fat16_read_cluster(dir_cluster, (char *)dir);
     }
+
+    for (int i = 0; i < entries; i++) {
+        if (dir[i].filename[0] == 0x00) {
+            continue;
+        }
+        if (dir[i].attr == 0x0F) {
+            continue;
+        }
+        char entry_filename[12];
+        for (int j = 0; j < 11; j++) {
+            entry_filename[j] = dir[i].filename[j];
+            if (entry_filename[j] == ' ') {
+                entry_filename[j] = '\0';
+            }
+        }
+        entry_filename[11] = '\0';
+        if (strcmp(filename, entry_filename) == 0) {
+            kmfree(dir);
+            return dir[i].cluster;
+        }
+    }
+
+    kmfree(dir);
+    return 0;
 }
 
 uint16 fat16_next_cluster(uint16 cluster) {
@@ -88,19 +114,15 @@ uint16 fat16_next_cluster(uint16 cluster) {
     return next;
 }
 
-void fat16_test() {
-    // dump rootdir
-    uint32 rootdir_size = sizeof(FAT16_DIR_ENTRY) * fat16.root_entries;
-    FAT16_DIR_ENTRY *rootdir = (FAT16_DIR_ENTRY *)kmalloc(rootdir_size);
-    ide_read_seq(fat16.rootdir_entry, rootdir,
-                 rootdir_size / fat16.sector_size);
-    debugf("rootdir entry: %x\n", fat16.rootdir_entry);
-    debugf("rootdir size: %d\n", rootdir_size);
+void fat16_read_cluster(uint16 cluster, char *buf) {
+    ide_read_seq(fat16.data_entry + (cluster - 2) * fat16.sector_per_cluster,
+                 buf, fat16.sector_per_cluster);
+}
 
-#ifdef __DEBUG__
-    fat16_dump_dir(rootdir, fat16.root_entries);
-#endif
-    kmfree(rootdir);
+void fat16_read_rootdir(FAT16_DIR_ENTRY *rootdir) {
+    ide_read_seq(
+        fat16.rootdir_entry, rootdir,
+        sizeof(FAT16_DIR_ENTRY) * fat16.root_entries / fat16.sector_size);
 }
 
 void fat16_dump_mbr(FAT16_MBR *mbr) {
