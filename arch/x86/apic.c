@@ -1,5 +1,4 @@
 #include <kernel.h>
-#include <mm.h>
 #include <trap.h>
 #include <x86/apic.h>
 #include <x86/asm.h>

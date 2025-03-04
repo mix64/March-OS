@@ -1,13 +1,10 @@
 #include <kernel.h>
-#include <proc.h>
-#include <syscall.h>
 #include <x86/desc.h>
 #include <x86/msr.h>
 
 extern void _syscall();
 
 void syscall_init() {
-    debugf("[sys] start setup\n");
     write_msr(IA32_EFER, read_msr(IA32_EFER) | IA32_EFER_SCE);
     debugf("[sys] IA32_EFER: %x\n", read_msr(IA32_EFER));
 
@@ -24,7 +21,6 @@ void syscall_init() {
     debugf("[sys] IA32_STAR: %x\n", read_msr(IA32_STAR));
     debugf("[sys] IA32_LSTAR: %x\n", read_msr(IA32_LSTAR));
     debugf("[sys] IA32_FMASK: %x\n", read_msr(IA32_SFMASK));
-    debugf("[sys] setup done\n");
 }
 
 void set_sysenter_stack(void *kstack) {
