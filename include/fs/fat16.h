@@ -101,4 +101,5 @@ typedef struct __attribute__((packed)) {
     short name3[2];
 } FAT16_LFN_ENTRY;
 
+void fat16_init();
 inode_t* fat16_namei(char* path);
