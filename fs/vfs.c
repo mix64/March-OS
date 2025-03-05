@@ -2,18 +2,12 @@
 #include <fs/inode.h>
 #include <vfs.h>
 
-#define __FAT16__
-
 int vfs_read(inode_t *ip, char *dst, uint64 offset, uint64 size) {
-#ifdef __FAT16__
-    // return fat16_read(ip, dst, offset, size);
-#endif
+    // return fat16_readi(ip, dst, offset, size);
     return -1;
 }
 
+inode_t *vfs_namei(char *path) { return fat16_namei(path); }
+
 extern void fat16_init();
-void vfs_init() {
-#ifdef __FAT16__
-    fat16_init();
-#endif
-}
+void vfs_init() { fat16_init(); }

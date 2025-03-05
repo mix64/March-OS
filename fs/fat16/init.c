@@ -8,7 +8,7 @@
 extern void fat16_dump_mbr(FAT16_MBR *mbr);
 extern void fat16_dump_bpb(FAT16_BPB *bpb);
 
-static FAT16 fat16;
+FAT16 fat16;
 
 void fat16_init() {
     /*

@@ -1,6 +1,9 @@
 #include <fs/fat16.h>
 #include <ide.h>
+#include <lib/string.h>
 #include <mm.h>
+
+extern FAT16 fat16;
 
 void fat16_read_rootdir(void *buf) {
     ide_read_seq(
@@ -13,7 +16,22 @@ void fat16_read_cluster(uint16 cluster, void *buf) {
                  buf, fat16.sector_per_cluster);
 }
 
-uint16 fat16_find_cluster(char *filename, uint16 dir_cluster) {
+uint16 fat16_next_cluster(uint16 cluster) {
+    uint16 *fat = (uint16 *)kmalloc(fat16.sector_size);
+
+    // 256 = 512(sector size) / 2(FAT entry size)
+    uint16 fat_entries = fat16.sector_size / sizeof(uint16);
+    ide_read(fat16.fat_entry + (cluster / fat_entries), fat);
+    uint16 next = fat[cluster % fat_entries];
+
+    kmfree(fat);
+    return next;
+}
+
+// [63:32] size of the file
+// [31:16] reserved
+// [15:0] cluster number
+uint64 fat16_find_cluster(char *filename, uint16 dir_cluster) {
     FAT16_DIR_ENTRY *dir;
     uint16 entries;
     if (dir_cluster == 0) {
@@ -43,22 +61,10 @@ uint16 fat16_find_cluster(char *filename, uint16 dir_cluster) {
         entry_filename[11] = '\0';
         if (strcmp(filename, entry_filename) == 0) {
             kmfree(dir);
-            return dir[i].cluster;
+            return dir[i].cluster | ((uint64)dir[i].size << 32);
         }
     }
 
     kmfree(dir);
     return 0;
-}
-
-uint16 fat16_next_cluster(uint16 cluster) {
-    uint16 *fat = (uint16 *)kmalloc(fat16.sector_size);
-
-    // 256 = 512(sector size) / 2(FAT entry size)
-    uint16 fat_entries = fat16.sector_size / sizeof(uint16);
-    ide_read(fat16.fat_entry + (cluster / fat_entries), fat);
-    uint16 next = fat[cluster % fat_entries];
-
-    kmfree(fat);
-    return next;
 }
