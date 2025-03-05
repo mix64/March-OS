@@ -3,8 +3,7 @@
 #include <vfs.h>
 
 int vfs_read(inode_t *ip, void *dst, uint64 offset, uint64 size) {
-    // return fat16_readi(ip, dst, offset, size);
-    return -1;
+    return fat16_readi(ip, dst, offset, size);
 }
 
 inode_t *vfs_namei(char *path) { return fat16_namei(path); }

@@ -103,3 +103,4 @@ typedef struct __attribute__((packed)) {
 
 void fat16_init();
 inode_t* fat16_namei(char* path);
+int fat16_readi(inode_t* ino, void* dst, uint64 offset, uint64 size);
