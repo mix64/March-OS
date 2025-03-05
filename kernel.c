@@ -1,5 +1,4 @@
 #include <boot/info.h>
-#include <fs.h>
 #include <kernel.h>
 #include <mm.h>
 #include <pci.h>
@@ -14,6 +13,7 @@ extern void syscall_init();
 extern void cpu_init();
 extern void serial_init();
 extern void idt_init();
+extern void vfs_init();
 
 void kernel_main() {
     kprintf("Hello, Kernel!\n");
@@ -22,7 +22,7 @@ void kernel_main() {
     idt_init();
     apic_init();
     pci_scan();
-    fs_init();
+    vfs_init();
     syscall_init();
     uinit();
     sti();

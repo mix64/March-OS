@@ -1,72 +1,60 @@
 #include <elf.h>
-#include <fs/fat16.h>
+#include <fs/inode.h>
 #include <kernel.h>
 #include <lib/string.h>
-
-uint16 get_inode_from_path(char *path);
+#include <mm.h>
+#include <proc.h>
+#include <vfs.h>
 
 int sys_spawn(char *path, char *argv[]) {
     if (path == NULL) {
         return -1;
     }
 
-    uint16 inode = get_inode_from_path(path);
-    if (inode == 0) {
+    inode_t *inode = vfs_namei(path);
+    if (inode == NULL) {
         return -1;
     }
+    proc_t *proc = palloc();
+    if (proc == NULL) {
+        ifree(inode);
+        return -1;
+    }
+    switch_uvm(proc->upml4);
 
     // Load the file into memory
+    Elf64_Ehdr ehdr;
+    if (vfs_read(inode, &ehdr, 0, sizeof(Elf64_Ehdr)) == -1) {
+        goto out;
+    }
+    debugf(" entry %x\n", ehdr.e_entry);
 
-    return 0;
-}
+    for (int i = 0, off = ehdr.e_phoff; i < ehdr.e_phnum;
+         i++, off += ehdr.e_phentsize) {
+        Elf64_Phdr phdr;
+        if (vfs_read(inode, &phdr, off, sizeof(Elf64_Phdr)) == -1) {
+            goto out;
+        }
 
-uint16 get_inode_from_path(char *path) {
-    char filename[12] = {0};  // FAT16 filename (8.3 format)
-    uint16 dinode = 0;        // Start searching from the root directory
-    uint16 inode = 0;
-    int i = 1;  // Start after initial '/', assuming absolute path
-    int j = 0;
-
-    if (path[0] != '/') {
-        return 0;  //  Only absolute paths supported
+        if (phdr.p_type != ELF_PROG_LOAD) {
+            continue;
+        }
+        if (phdr.p_filesz > phdr.p_memsz) {
+            goto out;
+        }
+        if (phdr.p_vaddr < USER_ADDR_START) {
+            goto out;
+        }
+        if (vfs_read(inode, (void *)phdr.p_vaddr, phdr.p_offset,
+                     phdr.p_filesz) == -1) {
+            goto out;
+        }
+        debugf(" mapped %x-%x\n", phdr.p_vaddr, phdr.p_vaddr + phdr.p_memsz);
     }
 
-    while (path[i] != '\0') {
-        j = 0;
-        // Extract filename
-        while (path[i] != '/' && path[i] != '\0') {
-            if (j < 11) {  // Check filename length (8 + 3)
-                filename[j] = path[i];
-                j++;
-            }
-            i++;
-        }
-        filename[j] = '\0';  // Null-terminate filename
-
-        inode = fat16_find_cluster(filename, dinode);
-        debugf("sys_spawn: found %s (%d) in %d\n", filename, inode, dinode);
-
-        if (inode == 0) {
-            // File/Directory not found
-            return 0;
-        }
-
-        if (path[i] == '/') {
-            // If it's a directory, update dinode and continue
-            dinode = inode;
-            i++;  // Skip '/'
-            if (path[i] == '\0') {
-                // path ends with '/'
-                return 0;
-            }
-        } else if (path[i] != '\0') {
-            return 0;  // Invalid characters after filename
-        } else {
-            return inode;  // Found the file
-        }
-
-        // Reset filename for next part of the path
-        memset(filename, 0, 12);
-    }
+out:
+    switch_uvm(curproc->upml4);
+    pfree(proc);
+    ifree(inode);
     return 0;
 }

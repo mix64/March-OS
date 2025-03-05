@@ -24,6 +24,7 @@ typedef struct proc {
 } proc_t;
 
 // proc.c
+extern proc_t *curproc;
 proc_t *palloc();
 void pfree(proc_t *p);
 void uinit();

@@ -44,6 +44,7 @@ void uinit() {
     memcpy((void *)USER_ADDR_START, initcode, sizeof(initcode));
     init->context->r15 = USER_ADDR_START;
     init->context->r14 = USER_ADDR_START + KiB(4);
+    curproc = init;
     context_switch(&dummy.context, init->context);
 }
 
@@ -56,6 +57,7 @@ void switch_proc(proc_t *new, proc_t *old) {
     }
     old->stat = READY;
     new->stat = RUN;
+    curproc = new;
     switch_uvm(new->upml4);
     set_sysenter_stack(new->kstack + KSTACK_SIZE);
     context_switch(&old->context, new->context);
