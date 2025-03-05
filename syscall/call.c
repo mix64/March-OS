@@ -1,7 +1,7 @@
 #include <kernel.h>
 #include <syscall.h>
 
-extern int sys_spawn(char *filename);
+extern int sys_spawn(char *filename, char *argv[]);
 
 void syscall(uint64 arg1, uint64 arg2, uint64 arg3, uint64 arg4, uint64 arg5,
              uint64 arg6, uint64 syscall_num) {
