@@ -34,7 +34,6 @@ inode_t* fat16_namei(char* path) {
         uint64 _tmp = fat16_find_cluster(filename, dir_cluster);
         cluster = (uint16)_tmp;
         size = (uint32)(_tmp >> 32);
-        debugf("sys_spawn: %s (ino:%d, size:%d)\n", filename, cluster, size);
 
         if (cluster == 0) {
             // File/Directory not found
