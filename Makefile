@@ -24,7 +24,7 @@ run: build
 	  -chardev stdio,mux=on,id=com1 -serial chardev:com1 \
 	  -hda fat:rw:root | tee ./qemu.log
 
-build: boot.efi kernel.bin
+build: boot.efi kernel.bin usr.bin
 
 boot.efi:
 	mkdir -p root/EFI/BOOT/
@@ -34,6 +34,9 @@ boot.efi:
 kernel.bin: kernel.o serial.o pm.o pci.o list.o string.o $(SUBDIR:=.o)
 	$(LD) -T kernel.ls -o root/kernel.bin $^
 	rm $(SUBDIR:=.o)
+
+usr.bin:
+	make -C usr
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -I ./include $<
