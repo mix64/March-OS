@@ -5,7 +5,7 @@
 
 uint16 get_inode_from_path(char *path);
 
-int sys_spawn(char *path) {
+int sys_spawn(char *path, char *argv[]) {
     if (path == NULL) {
         return -1;
     }

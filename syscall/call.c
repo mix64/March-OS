@@ -10,7 +10,7 @@ void syscall(uint64 arg1, uint64 arg2, uint64 arg3, uint64 arg4, uint64 arg5,
     switch (syscall_num) {
         case SYS_spawn:
             debugf("sys_spawn(\"%s\")\n", (char *)arg1);
-            sys_spawn((char *)arg1);
+            sys_spawn((char *)arg1, (char **)arg2);
             break;
         case SYS_exit:
             kprintf("SYS_exit\n");
