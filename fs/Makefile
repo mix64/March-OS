@@ -1,4 +1,4 @@
-OBJS = vfs.o
+OBJS = inode.o vfs.o
 SUBDIR = fat16
 
 all: fs.o
