@@ -25,7 +25,7 @@ int sys_spawn(char *path, char *argv[]) {
     // Load the file into memory
     Elf64_Ehdr ehdr;
     if (vfs_read(inode, &ehdr, 0, sizeof(Elf64_Ehdr)) == -1) {
-        goto out;
+        goto bad;
     }
     debugf(" entry %x\n", ehdr.e_entry);
 
@@ -33,29 +33,32 @@ int sys_spawn(char *path, char *argv[]) {
          i++, off += ehdr.e_phentsize) {
         Elf64_Phdr phdr;
         if (vfs_read(inode, &phdr, off, sizeof(Elf64_Phdr)) == -1) {
-            goto out;
+            goto bad;
         }
 
         if (phdr.p_type != ELF_PROG_LOAD) {
             continue;
         }
         if (phdr.p_filesz > phdr.p_memsz) {
-            goto out;
+            goto bad;
         }
         if (phdr.p_vaddr < USER_ADDR_START) {
-            goto out;
+            goto bad;
         }
         if (vfs_read(inode, (void *)phdr.p_vaddr, phdr.p_offset,
                      phdr.p_filesz) == -1) {
-            goto out;
+            goto bad;
         }
         debugf(" mapped %x-%x\n", phdr.p_vaddr, phdr.p_vaddr + phdr.p_memsz);
     }
 
+    goto out;
+bad:
+    pfree(new_proc);
+
 out:
     // restore the current process
     switch_uvm(curproc);
-    pfree(new_proc);
     ifree(inode);
     return 0;
 }
