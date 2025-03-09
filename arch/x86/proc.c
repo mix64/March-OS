@@ -82,6 +82,7 @@ proc_t *palloc() {
 void pfree(proc_t *p) {
     list_remove(&proc_list, p);
     kmfree(p->kstack);
+    free_uvm(p);
     pmfree((void *)p->upml4, PM_4K);
     kmfree(p);
 }

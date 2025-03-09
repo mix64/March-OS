@@ -27,6 +27,7 @@ void pm_dump();
 pte_t *walk_pgdir(uintptr va, bool create, bool large);
 void setflag(pte_t *pte, uint64 flag);
 void switch_uvm(proc_t *proc);
+void free_uvm(proc_t *proc);
 
 // slab.c
 void *kmalloc(uint64 size);

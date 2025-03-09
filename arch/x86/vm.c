@@ -93,15 +93,15 @@ void setflag(pte_t *pte, uint64 flag) { *pte |= flag; }
 
 void switch_uvm(proc_t *proc) {
     pte_t *pml4 = (pte_t *)(ROUNDDOWN((uintptr)pgdir, KiB(4)));
-    pml4[PML4_IDX(USER_ADDR_START)] = proc->upml4
+    pml4[PML4_IDX(USER_ADDR_START)] = proc->upml4;
 }
 
-void free_uvm(pte_t upml4) {
-    pte_t *pml4 = (pte_t *)(ROUNDDOWN((uintptr)pgdir, KiB(4)));
-    if ((pml4[PML4_IDX(USER_ADDR_START)] & PG_P) == 0) {
+void free_uvm(proc_t *proc) {
+    if ((proc->upml4 & PG_P) == 0) {
         panic("free_uvm: pml4[2] not present\n");
     }
-    pte_t *pdpt = (pte_t *)(pml4[PML4_IDX(USER_ADDR_START)] & ~BIT64_MASK(12));
+
+    pte_t *pdpt = (pte_t *)(proc->upml4 & ~BIT64_MASK(12));
     for (uint64 i = 0; i < 512; i++) {
         if (pdpt[i] & PG_P) {
             pte_t *pd = (pte_t *)(pdpt[i] & ~BIT64_MASK(12));
@@ -120,5 +120,5 @@ void free_uvm(pte_t upml4) {
         }
     }
     pmfree(pdpt, PM_4K);
-    pml4[PML4_IDX(USER_ADDR_START)] = 0;
+    proc->upml4 = 0;
 }
