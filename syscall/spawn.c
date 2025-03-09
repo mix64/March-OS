@@ -15,12 +15,12 @@ int sys_spawn(char *path, char *argv[]) {
     if (inode == NULL) {
         return -1;
     }
-    proc_t *proc = palloc();
-    if (proc == NULL) {
+    proc_t *new_proc = palloc();
+    if (new_proc == NULL) {
         ifree(inode);
         return -1;
     }
-    switch_uvm(proc->upml4);
+    switch_uvm(new_proc);
 
     // Load the file into memory
     Elf64_Ehdr ehdr;
@@ -53,8 +53,9 @@ int sys_spawn(char *path, char *argv[]) {
     }
 
 out:
-    switch_uvm(curproc->upml4);
-    pfree(proc);
+    // restore the current process
+    switch_uvm(curproc);
+    pfree(new_proc);
     ifree(inode);
     return 0;
 }

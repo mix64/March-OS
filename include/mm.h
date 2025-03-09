@@ -1,5 +1,6 @@
 #pragma once
 #include <common.h>
+#include <proc.h>
 #include <types.h>
 
 #define PAGE_SIZE KiB(4ULL)
@@ -25,7 +26,7 @@ void pm_dump();
 // vm.c
 pte_t *walk_pgdir(uintptr va, bool create, bool large);
 void setflag(pte_t *pte, uint64 flag);
-void switch_uvm(pte_t upml4);
+void switch_uvm(proc_t *proc);
 
 // slab.c
 void *kmalloc(uint64 size);

@@ -39,7 +39,7 @@ void uinit() {
 
     proc_t *init = palloc();
     init->stat = RUN;
-    switch_uvm(init->upml4);
+    switch_uvm(init);
     set_sysenter_stack(init->kstack + KSTACK_SIZE);
     memcpy((void *)USER_ADDR_START, initcode, sizeof(initcode));
     init->context->r15 = USER_ADDR_START;
@@ -58,7 +58,7 @@ void switch_proc(proc_t *new, proc_t *old) {
     old->stat = READY;
     new->stat = RUN;
     curproc = new;
-    switch_uvm(new->upml4);
+    switch_uvm(new);
     set_sysenter_stack(new->kstack + KSTACK_SIZE);
     context_switch(&old->context, new->context);
 }

@@ -91,9 +91,9 @@ pte_t *walk_pgdir(uintptr va, bool create, bool large) {
 
 void setflag(pte_t *pte, uint64 flag) { *pte |= flag; }
 
-void switch_uvm(pte_t upml4) {
+void switch_uvm(proc_t *proc) {
     pte_t *pml4 = (pte_t *)(ROUNDDOWN((uintptr)pgdir, KiB(4)));
-    pml4[PML4_IDX(USER_ADDR_START)] = upml4;
+    pml4[PML4_IDX(USER_ADDR_START)] = proc->upml4
 }
 
 void free_uvm(pte_t upml4) {
