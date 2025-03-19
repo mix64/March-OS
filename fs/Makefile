@@ -1,5 +1,5 @@
 OBJS = inode.o vfs.o
-SUBDIR = fat16
+SUBDIR = fat16 devfs
 
 all: fs.o
 
