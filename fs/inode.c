@@ -24,8 +24,9 @@ inode_t *ialloc(uint64 id) {
 }
 
 void ifree(inode_t *ip) {
-    if (ip->refcnt > 1) {
+    if (ip->refcnt > 2) {
         ip->refcnt--;
+        return;
     }
     list_remove(&inode_list, ip);
     kmfree(ip);
