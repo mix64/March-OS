@@ -1,3 +1,4 @@
+#include <fs/devfs.h>
 #include <kernel.h>
 #include <lib/string.h>
 #include <list.h>
@@ -74,7 +75,8 @@ proc_t *palloc() {
     p->context->rip = (uint64)_sysret;
     p->wchan = NULL;
     p->upml4 = (uintptr)pmalloc(PM_4K) | PG_P | PG_RW | PG_US;
-
+    p->ofile[FD_STDIN] = devfs_stdio();
+    p->ofile[FD_STDOUT] = devfs_stdio();
     list_push(&proc_list, p);
     return p;
 }

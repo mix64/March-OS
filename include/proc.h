@@ -1,5 +1,8 @@
 #pragma once
+#include <file.h>
 #include <types.h>
+
+#define NOFILE 32
 
 enum procstat { UNUSED, SET, READY, RUN, SLEEP, ZOMB, STOP };
 
@@ -21,6 +24,7 @@ typedef struct proc {
     context_t *context;
     void *wchan;  // waiting channel
     pte_t upml4;  // page directory (PML[2] for user process)
+    file_t *ofile[NOFILE];
 } proc_t;
 
 // proc.c
