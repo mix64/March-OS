@@ -31,7 +31,7 @@ boot.efi:
 	make -C boot
 	mv boot/boot.efi root/EFI/BOOT/BOOTX64.EFI
 
-kernel.bin: kernel.o serial.o pm.o pci.o list.o string.o $(SUBDIR:=.o)
+kernel.bin: kernel.o list.o pci.o serial.o string.o $(SUBDIR:=.o)
 	$(LD) -T kernel.ls -o root/kernel.bin $^
 	rm $(SUBDIR:=.o)
 
