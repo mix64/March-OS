@@ -8,9 +8,9 @@
 #include <x86/asm.h>
 #include <x86/mm.h>
 
-list_t proc_list;
-proc_t *curproc;
-uint64 nextpid;
+static list_t proc_list;
+static proc_t *curproc;
+static uint64 nextpid;
 
 #define KSTACK_SIZE KiB(1)
 

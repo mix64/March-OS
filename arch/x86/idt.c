@@ -3,11 +3,11 @@
 #include <x86/asm.h>
 #include <x86/desc.h>
 
-struct gatedesc idt[256];
-struct taskstate ts;
+static struct gatedesc idt[256];
+static struct taskstate ts;
 static uint16 idtr[5];
-extern uint64 vectors[];
-extern struct seg32desc gdt[];
+extern uint64 vectors[];        // vectors.S
+extern struct seg32desc gdt[];  // entry.S
 
 void idt_entry(struct gatedesc *idt, uint16 cs, uint64 offset, uint8 is_trap,
                uint8 dpl);

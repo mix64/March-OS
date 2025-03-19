@@ -3,7 +3,7 @@
 #include <mm.h>
 #include <mm/slab.h>
 
-SLAB slabs[SLAB_NUM];
+static SLAB slabs[SLAB_NUM];
 
 void *find_free_slab(enum SLAB_IDX idx);
 enum SLAB_IDX _size_to_slab_idx(uint64 size);

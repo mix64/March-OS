@@ -3,7 +3,7 @@
 #include <mm.h>
 #include <system.h>
 
-uintptr *pmmap[PMMAP_NUM];
+static uintptr *pmmap[PMMAP_NUM];
 
 uint8 _pm_size_to_idx(enum PMMAP size);
 
