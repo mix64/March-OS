@@ -63,6 +63,10 @@ void efi_main(void *ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     boot_info.memtotal = get_total_memory_size();
     put_param(L"[uefi] Total Memory Size", boot_info.memtotal);
 
+    // Get RSDPv2 (Root System Description Pointer)
+    boot_info.rsdp2 = search_rsdp2();
+    put_param(L"[uefi] RSDPv2 Address", boot_info.rsdp2);
+
     exit_boot_services(ImageHandle);
 
     void (*entry)(BootInfo *) = (void (*)(BootInfo *))(kernel_entry_addr);

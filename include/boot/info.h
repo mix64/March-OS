@@ -11,4 +11,5 @@ typedef struct {
 typedef struct {
     uint64 memtotal;
     FrameBuffer screen;
+    uintptr rsdp2;
 } BootInfo;
