@@ -93,7 +93,7 @@ uint64 get_total_memory_size() {
     return total_memory_size;
 }
 
-uintptr search_rsdp2() {
+uintptr search_xsdp() {
     EFI_CONFIGURATION_TABLE *table = ST->ConfigurationTable;
     for (uint64 i = 0; i < ST->NumberOfTableEntries; i++) {
         if (test_guid(&table[i].VendorGuid, &ACPIv2_GUID) == 0) {

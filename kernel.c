@@ -4,7 +4,6 @@
 #include <pci.h>
 #include <proc.h>
 #include <system.h>
-#include <x86/apic.h>
 #include <x86/asm.h>
 
 System SYSTEM;
@@ -14,10 +13,13 @@ extern void cpu_init();
 extern void serial_init();
 extern void idt_init();
 extern void vfs_init();
+extern void acpi_init();
+extern void apic_init();
 
 void kernel_main() {
     kprintf("Hello, Kernel!\n");
     cpu_init();
+    acpi_init(SYSTEM.xsdp);
     mm_init();
     idt_init();
     apic_init();
@@ -45,6 +47,7 @@ void kernel_stub(BootInfo *bi) {
     SYSTEM.screen.size = bi->screen.size;
     SYSTEM.screen.hr = bi->screen.hr;
     SYSTEM.screen.vr = bi->screen.vr;
+    SYSTEM.xsdp = bi->xsdp;
     // clear_screen();
     serial_init();
     kernel_main();

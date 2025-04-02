@@ -230,7 +230,7 @@ void panic(uint16 *message);
 void efi_init(EFI_SYSTEM_TABLE *SystemTable);
 struct EFI_FILE_PROTOCOL *search_volume_contains_file(uint16 *filename);
 uint64 get_total_memory_size();
-uintptr search_rsdp2();
+uintptr search_xsdp();
 void exit_boot_services(void *ImageHandle);
 int test_guid(EFI_GUID *guid1, EFI_GUID *guid2);
 extern EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *SFSP;
