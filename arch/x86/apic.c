@@ -1,6 +1,6 @@
+#include <apic.h>
 #include <kernel.h>
 #include <trap.h>
-#include <x86/apic.h>
 #include <x86/asm.h>
 #include <x86/cpuid.h>
 #include <x86/msr.h>
@@ -43,7 +43,7 @@
 #define APIC_TIMER_DCR 0x3E0 /* Divide Configuration Register (for Timer) */
 #define APIC_TIMER_DCR_DIV1 0xB
 
-volatile static uintptr lapic;
+APIC apic;
 
 int check_apic() { return (CPUID_0001_EDX & CPUID_0001_EDX_APIC); }
 
@@ -62,10 +62,10 @@ void disable_pic() {
 void enable_apic() {
     uint32 eax, edx = 0;
     rdmsr(IA32_APIC_BASE_MSR, &eax, &edx);
-    lapic = eax & 0xfffff0000;
+    apic.lapic_addr = eax & 0xfffff0000;
 
     debugf("[apic] IA32_APIC_BASE_MSR: %x %x\n", edx, eax);
-    debugf("[apic] APIC at: %x\n", lapic);
+    debugf("[apic] APIC at: %x\n", apic.lapic_addr);
     if ((eax & IA32_APIC_BASE_MSR_ENABLE) == 0) {
         eax |= IA32_APIC_BASE_MSR_ENABLE;
         wrmsr(IA32_APIC_BASE_MSR, eax, edx);
@@ -73,14 +73,14 @@ void enable_apic() {
 }
 
 uint32 write_apic(uint32 idx, uint32 value) {
-    mmio_write32((void *)(lapic + idx), value);
+    mmio_write32((void *)(apic.lapic_addr + idx), value);
     volatile uint32 _ =
-        mmio_read32((void *)(lapic + APIC_ID));  // wait for write
+        mmio_read32((void *)(apic.lapic_addr + APIC_ID));  // wait for write
     return _;
 }
 
 uint32 read_apic(uint32 idx) {
-    uint32 data = mmio_read32((void *)(lapic + idx));
+    uint32 data = mmio_read32((void *)(apic.lapic_addr + idx));
     return data;
 }
 
