@@ -51,7 +51,7 @@ void _kprintf(char *fmt, uint8 argc, uintptr *argv) {
                 printn((uint64)argv[arg_index++], 8);
                 break;
             case 'c':
-                putchar(*(char *)argv[arg_index++]);
+                putchar((char)argv[arg_index++]);
                 break;
             case 's':
                 s = (char *)argv[arg_index++];
