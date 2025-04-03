@@ -6,10 +6,11 @@
 #include <proc.h>
 #include <trap.h>
 #include <x86/asm.h>
+#include <x86/desc.h>
 #include <x86/mm.h>
 
+proc_t *curproc;
 static list_t proc_list;
-static proc_t *curproc;
 static uint64 nextpid;
 
 #define KSTACK_SIZE KiB(1)
@@ -73,6 +74,7 @@ proc_t *palloc() {
     sp -= sizeof(context_t);
     p->context = (context_t *)sp;
     p->context->rip = (uint64)_sysret;
+    p->context->r13 = RFLAGS_IF;  // Enable interrupts
     p->wchan = NULL;
     p->upml4 = (uintptr)pmalloc(PM_4K) | PG_P | PG_RW | PG_US;
     p->ofile[FD_STDIN] = devfs_stdio();
