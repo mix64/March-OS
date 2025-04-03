@@ -1,4 +1,4 @@
-OBJS = 
+OBJS = kbd.o
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -I ../include $<
