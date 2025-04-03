@@ -108,3 +108,5 @@ struct taskstate {
     // 16-bit offset from the base of the TSS to the I/O Permission Bit Map.
     uint64 iomb : 16;
 };
+
+#define RFLAGS_IF (1 << 9)  // Interrupt Flag

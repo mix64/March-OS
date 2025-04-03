@@ -1,6 +1,6 @@
+#include <apic.h>
 #include <kernel.h>
 #include <trap.h>
-#include <x86/apic.h>
 #include <x86/asm.h>
 #include <x86/cpuid.h>
 #include <x86/msr.h>
@@ -43,7 +43,12 @@
 #define APIC_TIMER_DCR 0x3E0 /* Divide Configuration Register (for Timer) */
 #define APIC_TIMER_DCR_DIV1 0xB
 
-volatile static uintptr lapic;
+/* IO APIC */
+#define IOAPIC_REG_INDEX 0x00
+#define IOAPIC_REG_DATA 0x10
+#define IOAPIC_REDTBL_START 0x10
+
+APIC apic;
 
 int check_apic() { return (CPUID_0001_EDX & CPUID_0001_EDX_APIC); }
 
@@ -62,10 +67,10 @@ void disable_pic() {
 void enable_apic() {
     uint32 eax, edx = 0;
     rdmsr(IA32_APIC_BASE_MSR, &eax, &edx);
-    lapic = eax & 0xfffff0000;
+    apic.lapic_addr = eax & 0xfffff0000;
 
     debugf("[apic] IA32_APIC_BASE_MSR: %x %x\n", edx, eax);
-    debugf("[apic] APIC at: %x\n", lapic);
+    debugf("[apic] APIC at: %x\n", apic.lapic_addr);
     if ((eax & IA32_APIC_BASE_MSR_ENABLE) == 0) {
         eax |= IA32_APIC_BASE_MSR_ENABLE;
         wrmsr(IA32_APIC_BASE_MSR, eax, edx);
@@ -73,20 +78,38 @@ void enable_apic() {
 }
 
 uint32 write_apic(uint32 idx, uint32 value) {
-    mmio_write32((void *)(lapic + idx), value);
+    mmio_write32((void *)(apic.lapic_addr + idx), value);
     volatile uint32 _ =
-        mmio_read32((void *)(lapic + APIC_ID));  // wait for write
+        mmio_read32((void *)(apic.lapic_addr + APIC_ID));  // wait for write
     return _;
 }
 
 uint32 read_apic(uint32 idx) {
-    uint32 data = mmio_read32((void *)(lapic + idx));
+    uint32 data = mmio_read32((void *)(apic.lapic_addr + idx));
     return data;
+}
+
+uint32 read_ioapic(uint8 reg) {
+    mmio_write32((void *)(apic.ioapic_addr + IOAPIC_REG_INDEX), reg);
+    return mmio_read32((void *)(apic.ioapic_addr + IOAPIC_REG_DATA));
+}
+
+void write_ioapic(uint8 reg, uint32 value) {
+    mmio_write32((void *)(apic.ioapic_addr + IOAPIC_REG_INDEX), reg);
+    mmio_write32((void *)(apic.ioapic_addr + IOAPIC_REG_DATA), value);
+}
+
+void ioapic_init() {
+    debugf("[apic] IO APIC at: %x\n", apic.ioapic_addr);
+    // Setup Keyboard (IRQ1)
+    // Bits 0-7: Interrupt vector.
+    write_ioapic(IOAPIC_REDTBL_START + IRQ_KBD * 2, T_IRQ0 + IRQ_KBD);
+    // Bits 56-63: Destination field.
+    write_ioapic(IOAPIC_REDTBL_START + IRQ_KBD * 2 + 1, 0);
 }
 
 /* 12.4.3 Enabling or Disabling the Local APIC */
 void apic_init() {
-    debugf("[apic] start setup\n");
     if (!check_apic()) {
         panic("apic: not supported\n");
     }
@@ -120,7 +143,9 @@ void apic_init() {
                APIC_ICR_BROADCAST | APIC_ICR_LEVEL | APIC_ICR_INIT);
     while (read_apic(APIC_ICR_LOW) & APIC_ICR_DELIV_STATUS);
     write_apic(APIC_TPR, 0);
-    debugf("[apic] setup done\n");
+
+    // Setup IOAPIC
+    ioapic_init();
 }
 
 void apic_eoi() { write_apic(APIC_EOI, 0); }

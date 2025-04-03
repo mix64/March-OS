@@ -11,6 +11,17 @@ EFI_GUID GOP_GUID = {0x9042a9de,
                      0x4a38,
                      {0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, 0x51, 0x6a}};
 
+// 5.2.5.2. Finding the RSDP on UEFI Enabled Systems
+EFI_GUID ACPIv1_GUID = {0xeb9d2d30,
+                        0x2d88,
+                        0x11d3,
+                        {0x9a, 0x16, 0x00, 0x90, 0x27, 0x3f, 0xc1, 0x4d}};
+
+EFI_GUID ACPIv2_GUID = {0x8868e871,
+                        0xe4f1,
+                        0x11d3,
+                        {0xbc, 0x22, 0x00, 0x80, 0xc7, 0x3c, 0x88, 0x81}};
+
 EFI_SYSTEM_TABLE *ST;
 EFI_GRAPHICS_OUTPUT_PROTOCOL *GOP;
 
@@ -82,6 +93,16 @@ uint64 get_total_memory_size() {
     return total_memory_size;
 }
 
+uintptr search_xsdp() {
+    EFI_CONFIGURATION_TABLE *table = ST->ConfigurationTable;
+    for (uint64 i = 0; i < ST->NumberOfTableEntries; i++) {
+        if (test_guid(&table[i].VendorGuid, &ACPIv2_GUID) == 0) {
+            return (uintptr)table[i].VendorTable;
+        }
+    }
+    return 0;
+}
+
 void exit_boot_services(void *ImageHandle) {
     uint64 mmap_size = MMAP_SIZE;
     uint64 map_key, desc_size;
@@ -92,4 +113,22 @@ void exit_boot_services(void *ImageHandle) {
     assert(status, L"GetMemoryMap@exit_boot_services");
     status = ST->BootServices->ExitBootServices(ImageHandle, map_key);
     assert(status, L"ExitBootServices");
+}
+
+int test_guid(EFI_GUID *guid1, EFI_GUID *guid2) {
+    if (guid1->Data1 != guid2->Data1) {
+        return 1;
+    }
+    if (guid1->Data2 != guid2->Data2) {
+        return 1;
+    }
+    if (guid1->Data3 != guid2->Data3) {
+        return 1;
+    }
+    for (uint8 i = 0; i < 8; i++) {
+        if (guid1->Data4[i] != guid2->Data4[i]) {
+            return 1;
+        }
+    }
+    return 0;  // GUIDs are equal
 }

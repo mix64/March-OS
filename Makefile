@@ -13,7 +13,7 @@ CFLAGS += -fno-pie -nopie
 endif
 
 CFLAGS += -D__DEBUG__
-SUBDIR := arch fs mm syscall
+SUBDIR := arch drivers fs mm syscall
 ifeq ($(ARCH), x86)
 CFLAGS += -D__x86__
 endif
@@ -31,7 +31,7 @@ boot.efi:
 	make -C boot
 	mv boot/boot.efi root/EFI/BOOT/BOOTX64.EFI
 
-kernel.bin: kernel.o list.o pci.o serial.o string.o $(SUBDIR:=.o)
+kernel.bin: acpi.o kernel.o list.o pci.o serial.o string.o $(SUBDIR:=.o)
 	$(LD) -T kernel.ls -o root/kernel.bin $^
 	rm $(SUBDIR:=.o)
 

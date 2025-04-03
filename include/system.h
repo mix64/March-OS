@@ -10,6 +10,7 @@ typedef struct {
         uint32 hr;
         uint32 vr;
     } screen;
+    uintptr xsdp;
 } System;
 
 extern System SYSTEM;

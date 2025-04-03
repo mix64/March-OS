@@ -1,12 +1,13 @@
+#include <apic.h>
 #include <kernel.h>
 #include <mm.h>
 #include <trap.h>
-#include <x86/apic.h>
 #include <x86/asm.h>
 
 static uint64 ticks;  // 100Hz Timer Counter
 
 void dump_tf(struct trapframe *tf);
+extern char kbdgetc();
 
 void trap(struct trapframe *tf) {
     switch (tf->trapno) {
@@ -22,6 +23,13 @@ void trap(struct trapframe *tf) {
             if (ticks % 100 == 0) {
                 kprintf("ticks = %d\n", ticks);
             }
+            break;
+        case T_IRQ0 + IRQ_KBD:
+            char c = kbdgetc();
+            if (c != 0) {
+                kprintf("kbd: %c\n", c);
+            }
+            apic_eoi();
             break;
         default:
             dump_tf(tf);
